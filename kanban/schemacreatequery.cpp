@@ -1,6 +1,6 @@
 #include "schemacreatequery.h"
 
-SchemaCreateQuery::SchemaCreateQuery(QString script)
+SchemaCreateQuery::SchemaCreateQuery(QString &script)
 {
     int script_begin_pos = script.indexOf("ATTACH");
 

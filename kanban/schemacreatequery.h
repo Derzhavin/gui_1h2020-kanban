@@ -8,7 +8,7 @@
 class SchemaCreateQuery
 {
 public:
-    SchemaCreateQuery(QString script);
+    SchemaCreateQuery(QString& script);
     void exec();
 
 private:
