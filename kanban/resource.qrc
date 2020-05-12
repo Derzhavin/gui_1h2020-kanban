@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/resource">
+        <file>img/delColumn.png</file>
+        <file>img/newColumn.png</file>
+        <file>img/appIcon.png</file>
+    </qresource>
+</RCC>
