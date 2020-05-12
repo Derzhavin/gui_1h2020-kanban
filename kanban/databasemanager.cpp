@@ -29,3 +29,15 @@ DatabaseManager::DatabaseManager(): Singleton<DatabaseManager>(*this)
         database.open();
     }
 }
+
+DatabaseManager::DatabaseQueryStatus DatabaseManager::addBoard(QString &boardName, QString *description, QString *pathToBackground)
+{
+    QSqlQuery query;
+    query.prepare("INSERT INTO board (name, description, path_to_background) "
+                    "VALUES (:name, :description, :path_to_background)");
+    query.bindValue(":name", boardName);
+    query.bindValue(":description", description ? *description: nullptr);
+    query.bindValue(":path_to_background", pathToBackground ? *pathToBackground: nullptr);
+
+    return query.exec() ? DatabaseQueryStatus::Success: DatabaseQueryStatus::Failure;
+}
