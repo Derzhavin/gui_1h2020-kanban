@@ -17,10 +17,10 @@ DatabaseManager::DatabaseManager(): Singleton<DatabaseManager>(*this)
             script += file.readLine();
         }
 
-        SchemaCreateQuery customSqlQuery = SchemaCreateQuery(script);
+        SchemaCreateQuery schemaCreateQuery = SchemaCreateQuery(script);
 
         if (database.open()) {
-            customSqlQuery.exec();
+            schemaCreateQuery.exec();
         } else {
             QMessageBox::critical(nullptr, "", DB_FAIL_MSG);
         }
