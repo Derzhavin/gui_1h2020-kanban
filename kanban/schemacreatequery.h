@@ -1,11 +1,18 @@
 #ifndef SQLPARSER_H
 #define SQLPARSER_H
 
+#include <QString>
+#include <QStringList>
+#include <QtSql/QSqlQuery>
 
-class SqlParser
+class SchemaCreateQuery
 {
 public:
-    SqlParser();
+    SchemaCreateQuery(QString script);
+    void exec();
+
+private:
+    QStringList statements;
 };
 
 #endif // SQLPARSER_H

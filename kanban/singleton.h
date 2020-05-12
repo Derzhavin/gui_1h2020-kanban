@@ -2,7 +2,6 @@
 #define SINGLETON_H
 
 #include <QtGlobal>
-//#pragma warning(disable : 4355)
 
 template <class T>
 class Singleton {
@@ -20,7 +19,7 @@ public:
         if(!s_pInstance) {
                    s_pInstance = new T();
         }
-        //Q_ASSERT_X(s_pInstance, "instancing", "The singleton has not yet been created.");
+        Q_ASSERT_X(s_pInstance, "instancing", "The singleton has not yet been created.");
         return (*s_pInstance);
     }
 private:

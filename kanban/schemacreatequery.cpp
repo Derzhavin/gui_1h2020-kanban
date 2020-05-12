@@ -1,6 +1,16 @@
-#include "sqlparser.h"
+#include "schemacreatequery.h"
 
-SqlParser::SqlParser()
+SchemaCreateQuery::SchemaCreateQuery(QString script)
 {
+    int script_begin_pos = script.indexOf("ATTACH");
 
+    statements = script.mid(script_begin_pos, script.length()).split(';');
+}
+
+void SchemaCreateQuery::exec()
+{
+    foreach (QString statement, statements) {
+        QSqlQuery query(statement);
+        query.exec();
+    }
 }

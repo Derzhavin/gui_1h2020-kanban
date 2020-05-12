@@ -18,11 +18,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     databasemanager.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    schemacreatequery.cpp
 
 HEADERS += \
+    config.h \
     databasemanager.h \
     mainwindow.h \
+    schemacreatequery.h \
     singleton.h
 
 FORMS += \
