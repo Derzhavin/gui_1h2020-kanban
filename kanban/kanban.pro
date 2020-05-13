@@ -16,17 +16,17 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    databasemanager.cpp \
     main.cpp \
     mainwindow.cpp \
-    schemacreatequery.cpp
+    schemacreatequery.cpp \
+    taskmanager.cpp
 
 HEADERS += \
     config.h \
-    databasemanager.h \
     mainwindow.h \
     schemacreatequery.h \
-    singleton.h
+    singleton.h \
+    taskmanager.h
 
 FORMS += \
     mainwindow.ui

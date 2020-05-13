@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "databasemanager.h"
+#include "taskmanager.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)

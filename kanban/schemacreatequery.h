@@ -1,5 +1,5 @@
-#ifndef SQLPARSER_H
-#define SQLPARSER_H
+#ifndef SCHEMACREATEQUERY_H
+#define SCHEMACREATEQUERY_H
 
 #include <QString>
 #include <QStringList>
@@ -15,4 +15,4 @@ private:
     QStringList statements;
 };
 
-#endif // SQLPARSER_H
+#endif // SCHEMACREATEQUERY_H
