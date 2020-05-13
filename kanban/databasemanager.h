@@ -1,6 +1,7 @@
 #ifndef DATABASEMANAGER_H
 #define DATABASEMANAGER_H
 
+
 #include "singleton.h"
 #include "schemacreatequery.h"
 
@@ -10,6 +11,19 @@
 #include <QFile>
 #include <QMessageBox>
 #include <QString>
+
+typedef struct ColumnKey ColumnKey;
+struct ColumnKey {
+    QString boardName;
+    QString columName;
+};
+
+typedef struct TaskKey TaskKey;
+struct TaskKey {
+    QString boardName;
+    QString columName;
+    quint8 pos;
+};
 
 class DatabaseManager: public Singleton<DatabaseManager>
 {
@@ -26,21 +40,16 @@ public:
     };
 
     DatabaseQueryStatus addBoard(QString& boardName, QString* description = nullptr, QString* pathToBackground = nullptr);
+    DatabaseQueryStatus updateBoard(QString& boardName, QString* newBoardName, QString* newDescription = nullptr, QString* newPathToBackground = nullptr);
     DatabaseQueryStatus removeBoard(QString& boardName);
-    DatabaseQueryStatus updateBoardName(QString& prevBoardName, QString& newBoardName);
-    DatabaseQueryStatus updateBoardDescriprion(QString& boardName, QString& newDescription);
-    DatabaseQueryStatus updateBoardBackGround(QString& boardName, QString& pathToBackground);
 
-    DatabaseQueryStatus addColumn(QString& boardName, QString& columnName, quint8 pos = 0);
-    DatabaseQueryStatus removeColumn(QString& boardName, QString& columnName);
-    DatabaseQueryStatus updateColumnName(QString& boardName, QString& prevColumnName, QString& newColumnName);
-    DatabaseQueryStatus updateColumnPos(QString& boardName, QString& columnName, quint8& prevPos, quint8& newPos);
+    DatabaseQueryStatus addColumn(ColumnKey& columnKey, quint8& pos);
+    DatabaseQueryStatus updateColumn(ColumnKey& columnKey, QString* newColumnName = nullptr, quint8 newPos = -1);
+    DatabaseQueryStatus removeColumn(ColumnKey& columnKey);
 
-    DatabaseQueryStatus addTask(QString& boardName, QString& columnName, QString& description, QString& datetimeCreated, QString* deadline = nullptr, quint8 pos = 0);
-    DatabaseQueryStatus removeTask(QString& boardName, QString& columnName, quint8& pos);
-    DatabaseQueryStatus updateTaskDescription(QString& boardName, QString& columnName, quint8& pos, QString& newDescription);
-    DatabaseQueryStatus updateTaskDeadline(QString& newDeadline);
-    DatabaseQueryStatus updateTaskPos(QString& boardName, QString& columnName, quint8& prevPos, quint8& newPos, QString* newColumnName = nullptr);
+    DatabaseQueryStatus addTask(TaskKey& taskKey, QString& description, QString& datetimeCreated, QString* deadline = nullptr);
+    DatabaseQueryStatus updateTask(TaskKey& taskKey, QString* newDescription = nullptr, QString* newDeadline = nullptr, QString* newColumnName = nullptr, quint8 newPos = -1);
+    DatabaseQueryStatus removeTask(TaskKey& taskKey);
 
 private:
     QSqlDatabase database;
