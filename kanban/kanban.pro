@@ -24,6 +24,7 @@ SOURCES += \
 
 HEADERS += \
     config.h \
+    dataadapter.h \
     mainwindow.h \
     schemacreatequery.h \
     singleton.h \

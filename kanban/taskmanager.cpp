@@ -100,6 +100,20 @@ bool TaskManager::removeBoard(QString &boardName)
     return query.exec();
 }
 
+QSqlRecord TaskManager::getBoard(QString &boardName)
+{
+    QSqlQuery query;
+    query.prepare("SELECT * FROM board WHERE name = ?");
+    query.addBindValue(boardName);
+
+    if (query.exec()) {
+        query.next();
+        return query.record();
+    }
+
+    return QSqlRecord();
+}
+
 bool TaskManager::addColumn(ColumnKey &columnKey, quint8 &pos)
 {
     QSqlTableModel model;
@@ -134,6 +148,7 @@ bool TaskManager::updateColumnName(ColumnKey& columnKey, QString& newColumnName)
     QSqlQuery query;
     query.prepare("UPDATE column SET name = ? WHERE board_name = ? AND name = ?");
     query.addBindValue(newColumnName);
+    bindColumnKey(query, columnKey);
 
     return query.exec();
 }
