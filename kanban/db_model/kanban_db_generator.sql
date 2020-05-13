@@ -2,7 +2,7 @@
 -- Author:        derzh
 -- Caption:       New Model
 -- Project:       Name of the project
--- Changed:       2020-05-12 17:08
+-- Changed:       2020-05-13 09:13
 -- Created:       2020-05-11 17:37
 PRAGMA foreign_keys = OFF;
 
@@ -22,6 +22,8 @@ CREATE TABLE "kanban"."column"(
   CONSTRAINT "fk_column_board1"
     FOREIGN KEY("board_name")
     REFERENCES "board"("name")
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
 );
 CREATE INDEX "kanban"."column.fk_column_board1_idx" ON "column" ("board_name");
 CREATE TABLE "kanban"."task"(
@@ -35,6 +37,8 @@ CREATE TABLE "kanban"."task"(
   CONSTRAINT "fk_task_column1"
     FOREIGN KEY("board_name","column_name")
     REFERENCES "column"("board_name","name")
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
 );
 CREATE INDEX "kanban"."task.fk_task_column1_idx" ON "task" ("board_name","column_name");
 COMMIT;
