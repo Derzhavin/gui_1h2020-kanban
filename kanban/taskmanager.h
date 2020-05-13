@@ -4,6 +4,7 @@
 
 #include "singleton.h"
 #include "schemacreatequery.h"
+#include "sqltablemodelextension.h"
 
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlTableModel>
@@ -11,19 +12,11 @@
 #include <QFile>
 #include <QMessageBox>
 #include <QString>
+#include <QPair>
+#include <tuple>
 
-typedef struct ColumnKey ColumnKey;
-struct ColumnKey {
-    QString boardName;
-    QString columName;
-};
-
-typedef struct TaskKey TaskKey;
-struct TaskKey {
-    QString boardName;
-    QString columName;
-    QString datetime_created;
-};
+using ColumnKey = QPair<QString, QString>; // board_name, name
+using TaskKey = std::tuple<QString, QString, QString>; // board_name, column_name, datetime_created
 
 class TaskManager: public Singleton<TaskManager>
 {
@@ -36,16 +29,26 @@ public:
     bool removeBoard(QString& boardName);
 
     bool addColumn(ColumnKey& columnKey, quint8& pos);
-    bool updateColumn(ColumnKey& columnKey, QString* newColumnName = nullptr, quint8 newPos = -1);
-    bool removeColumn(ColumnKey& columnKey);
+    bool updateColumnPos(ColumnKey& columnKey, quint8& prevPos, quint8& newPos);
+    bool updateColumnName(ColumnKey& columnKey, QString& newColumnName);
+    bool removeColumn(ColumnKey& columnKey, quint8 &prevPos);
 
     bool addTask(TaskKey& taskKey, QString& description, quint8& pos, QString* deadline = nullptr);
-    bool updateTask(TaskKey& taskKey, QString* newDescription = nullptr, QString* newDeadline = nullptr, QString* newColumnName = nullptr, quint8 newPos = -1);
-    bool removeTask(TaskKey& taskKey);
+    bool moveTaskToOtherColumn(TaskKey& taskKey, QString& columnName, quint8& prevPos, quint8& newPos);
+    bool updateTaskPosInColumn(TaskKey& taskKey, quint8& prevPos, quint8& newPos);
+    bool updateTaskDescription(TaskKey& taskKey, QString& newDescription);
+    bool removeTask(TaskKey& taskKey, quint8 &prevPos);
+    QSqlRecord getTask(TaskKey& taskKey);
+
+private:
+    void bindColumnKey(QSqlQuery& query, ColumnKey& columnKey);
+    void bindTaskKey(QSqlQuery& query, TaskKey& taskKey);
+    void selectTalsks(QSqlTableModel& model, TaskKey &taskKey, quint8 begin, quint8 end = 255);
+    void selectColumns(QSqlTableModel& model, ColumnKey& columnKey, quint8 begin, quint8 end = 255);
+    void shrinkModel(QSqlTableModel& model, quint8 begin, quint8 end = 255);
 
 private:
     QSqlDatabase database;
-    QSqlQuery query;
 };
 
 #endif // TASKMANAGER_H

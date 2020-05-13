@@ -3,16 +3,14 @@
 
 #include <QApplication>
 #include <QDebug>
+#include <tuple>
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    QString k("k");
-    QString c("c");
-    QString y("y");
-    QString f("f");
+//    TaskKey key = std::make_tuple(QString("a"), QString("k"), QString("2004-05-23 14:25:10"));
 
-    TaskManager::instance().updateBoard(f, &y, nullptr, &k);
-
+//    qDebug() << TaskManager::instance().getTask(key).value("board_name");
     MainWindow w;
     w.show();
     return a.exec();

@@ -19,6 +19,7 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     schemacreatequery.cpp \
+    sqltablemodelextension.cpp \
     taskmanager.cpp
 
 HEADERS += \
@@ -26,6 +27,7 @@ HEADERS += \
     mainwindow.h \
     schemacreatequery.h \
     singleton.h \
+    sqltablemodelextension.h \
     taskmanager.h
 
 FORMS += \
