@@ -30,7 +30,7 @@ TaskManager::TaskManager(): Singleton<TaskManager>(*this)
     }
 }
 
-bool TaskManager::addBoard(QString &boardName, QString *description, QString *pathToBackground)
+bool TaskManager::insertBoard(QString &boardName, QString *description, QString *pathToBackground)
 {
     QSqlQuery query;
     query.prepare("INSERT INTO board (name, description, path_to_background) VALUES (?, ?, ?)");
@@ -91,7 +91,7 @@ bool TaskManager::updateBoard(QString &boardName, QString* newBoardName, QString
     return query.exec();
 }
 
-bool TaskManager::removeBoard(QString &boardName)
+bool TaskManager::deleteBoard(QString &boardName)
 {
     QSqlQuery query;
     query.prepare("DELETE FROM board WHERE name = ?");
@@ -100,21 +100,12 @@ bool TaskManager::removeBoard(QString &boardName)
     return query.exec();
 }
 
-QSqlRecord TaskManager::getBoard(QString &boardName)
+Board TaskManager::retrieveBoard(QString &board)
 {
-    QSqlQuery query;
-    query.prepare("SELECT * FROM board WHERE name = ?");
-    query.addBindValue(boardName);
 
-    if (query.exec()) {
-        query.next();
-        return query.record();
-    }
-
-    return QSqlRecord();
 }
 
-bool TaskManager::addColumn(ColumnKey &columnKey, quint8 &pos)
+bool TaskManager::insertColumn(ColumnKey &columnKey, quint8 &pos)
 {
     QSqlTableModel model;
     selectColumns(model, columnKey, pos);
@@ -153,7 +144,7 @@ bool TaskManager::updateColumnName(ColumnKey& columnKey, QString& newColumnName)
     return query.exec();
 }
 
-bool TaskManager::removeColumn(ColumnKey &columnKey, quint8& prevPos)
+bool TaskManager::deleteColumn(ColumnKey &columnKey, quint8& prevPos)
 {
     QSqlTableModel model;
     selectColumns(model, columnKey, prevPos);
@@ -163,7 +154,7 @@ bool TaskManager::removeColumn(ColumnKey &columnKey, quint8& prevPos)
     return model.submitAll();
 }
 
-bool TaskManager::addTask(TaskKey &taskKey, QString &description, quint8& pos, QString *deadline)
+bool TaskManager::insertTask(TaskKey &taskKey, QString &description, quint8& pos, QString *deadline)
 {
     QSqlTableModel model;
     selectTasks(model,taskKey, pos);
@@ -182,19 +173,19 @@ bool TaskManager::addTask(TaskKey &taskKey, QString &description, quint8& pos, Q
 
 bool TaskManager::moveTaskToOtherColumn(TaskKey& taskKey, QString& columnName, quint8& prevPos, quint8& newPos)
 {
-    QSqlRecord record = getTask(taskKey);
+    QSqlRecord record = selectTask(taskKey);
 
-    if (removeTask(taskKey, prevPos)) {
+    if (deleteTask(taskKey, prevPos)) {
         taskKey = TaskKey(std::get<0>(taskKey), columnName, std::get<2>(taskKey));
         QString description = record.value("description").toString();
         QVariant variant = record.value("deadline");
 
         if (variant.isValid()) {
             QString description = variant.toString();
-            return addTask(taskKey, description, newPos, &description);
+            return insertTask(taskKey, description, newPos, &description);
         }
 
-        return addTask(taskKey, description, newPos, nullptr);
+        return insertTask(taskKey, description, newPos, nullptr);
     }
     return false;
 }
@@ -220,7 +211,7 @@ bool TaskManager::updateTaskDescription(TaskKey& taskKey, QString& newDescriptio
     return query.exec();
 }
 
-bool TaskManager::removeTask(TaskKey &taskKey, quint8& prevPos)
+bool TaskManager::deleteTask(TaskKey &taskKey, quint8& prevPos)
 {
     QSqlTableModel model;
     selectTasks(model, taskKey, prevPos);
@@ -230,7 +221,7 @@ bool TaskManager::removeTask(TaskKey &taskKey, quint8& prevPos)
     return model.submitAll();
 }
 
-QSqlRecord TaskManager::getTask(TaskKey &taskKey)
+QSqlRecord TaskManager::selectTask(TaskKey &taskKey)
 {
     QSqlQuery query;
     query.prepare("SELECT * FROM task WHERE board_name = ? AND column_name = ? AND datetime_created = ?");
