@@ -3,5 +3,7 @@
         <file>img/delColumn.png</file>
         <file>img/newColumn.png</file>
         <file>img/appIcon.png</file>
+        <file>db_model/kanban.png</file>
+        <file>db_model/kanban_db_generator.sql</file>
     </qresource>
 </RCC>

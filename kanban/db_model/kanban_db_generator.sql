@@ -2,7 +2,7 @@
 -- Author:        derzh
 -- Caption:       New Model
 -- Project:       Name of the project
--- Changed:       2020-05-12 17:08
+-- Changed:       2020-05-13 12:40
 -- Created:       2020-05-11 17:37
 PRAGMA foreign_keys = OFF;
 
@@ -31,7 +31,7 @@ CREATE TABLE "kanban"."task"(
   "description" TEXT NOT NULL,
   "board_name" VARCHAR(255) NOT NULL,
   "column_name" VARCHAR(255) NOT NULL,
-  PRIMARY KEY("column_name","board_name","order_num"),
+  PRIMARY KEY("column_name","board_name","datetime_created"),
   CONSTRAINT "fk_task_column1"
     FOREIGN KEY("board_name","column_name")
     REFERENCES "column"("board_name","name")
