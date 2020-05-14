@@ -16,24 +16,33 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    boardselectiondialog.cpp \
+    createprojectdialog.cpp \
     databasemanager.cpp \
     main.cpp \
-    mainwindow.cpp \
+    projectreviewdialog.cpp \
+    projectwindow.cpp \
     schemacreatequery.cpp \
     sqltablemodelextension.cpp \
     taskmanager.cpp
 
 HEADERS += \
+    boardselectiondialog.h \
     config.h \
+    createprojectdialog.h \
     databasemanager.h \
-    mainwindow.h \
+    projectreviewdialog.h \
+    projectwindow.h \
     schemacreatequery.h \
     singleton.h \
     sqltablemodelextension.h \
     taskmanager.h
 
 FORMS += \
-    mainwindow.ui
+    boardselectiondialog.ui \
+    createprojectdialog.ui \
+    projectreviewdialog.ui \
+    projectwindow.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

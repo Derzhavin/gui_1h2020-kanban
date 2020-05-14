@@ -1,15 +1,15 @@
-#include "mainwindow.h"
+#include "projectwindow.h"
 #include "ui_mainwindow.h"
 #include "databasemanager.h"
 
-MainWindow::MainWindow(QWidget *parent)
+ProjectWindow::ProjectWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
 }
 
-MainWindow::~MainWindow()
+ProjectWindow::~ProjectWindow()
 {
     delete ui;
 }

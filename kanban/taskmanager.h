@@ -34,7 +34,6 @@ class TaskManager
 public:
     TaskManager();
 
-
     QList<BoardInfo> getBoardsInfos();
     void addBoard(QString name, QString descriprion = "", QString pathToBackGround = "");
     void updateBoard(QString name, QString* newName, QString* newDescription = nullptr, QString* newPathToBackground = nullptr);
