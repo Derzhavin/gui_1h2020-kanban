@@ -1,57 +1,59 @@
 #ifndef TASKMANAGER_H
 #define TASKMANAGER_H
 
-
-#include "singleton.h"
-#include "schemacreatequery.h"
+#include "databasemanager.h"
 #include "sqltablemodelextension.h"
-#include "dataadapter.h"
 
-#include <QtSql/QSqlQuery>
-#include <QtSql/QSqlTableModel>
-#include <QtSql/QSqlRecord>
-#include <QFile>
-#include <QMessageBox>
+#include <QList>
 #include <QString>
-#include <QPair>
-#include <tuple>
+#include <QSqlRecord>
+#include <QSqlTableModel>
+#include <QDateTime>
 
-using ColumnKey = QPair<QString, QString>; // board_name, name
-using TaskKey = std::tuple<QString, QString, QString>; // board_name, column_name, datetime_created
+struct BoardInfo {
+    QString name;
+    QString description;
+    QString pathToBackGround;
+};
 
-class TaskManager: public Singleton<TaskManager>
+struct ColumnInfo {
+    QString name;
+    QString boardName;
+    quint8 pos;
+};
+
+struct TaskInfo {
+    QString datetimeCreated;
+    QString description;
+    QString deadline;
+    quint8 pos;
+};
+
+class TaskManager
 {
-
 public:
     TaskManager();
 
-    bool insertBoard(QString& boardName, QString* description = nullptr, QString* pathToBackground = nullptr);
-    bool updateBoard(QString& boardName, QString* newBoardName, QString* newDescription = nullptr, QString* newPathToBackground = nullptr);
-    bool deleteBoard(QString& boardName);
+    QList<TaskInfo> getTaskInfosByBoardNameAndColumnName(QString boardName, QString columnName);
 
-    Board retrieveBoard(QString& board);
+    QList<BoardInfo> getBoardsInfos();
+    void addBoard(QString name, QString descriprion = "", QString pathToBackGround = "");
+    void updateBoard(QString name, QString* newName, QString* newDescription = nullptr, QString* newPathToBackground = nullptr);
+    void removeBoard(QString name);
 
-    bool insertColumn(ColumnKey& columnKey, quint8& pos);
-    bool updateColumnPos(ColumnKey& columnKey, quint8& prevPos, quint8& newPos);
-    bool updateColumnName(ColumnKey& columnKey, QString& newColumnName);
-    bool deleteColumn(ColumnKey& columnKey, quint8 &prevPos);
+    QList<ColumnInfo> getColumnInfosByBoardName(QString boardName);
+    void addColumn(QString name, quint8 pos);
+    void updateColumnPos(QString name, quint8 prevPos, quint8 newPos);
+    void updateColumnName(QString name, QString& newColumnName);
+    void removeColumn(QString name, quint8 &prevPos);
 
-    bool insertTask(TaskKey& taskKey, QString& description, quint8& pos, QString* deadline = nullptr);
-    bool moveTaskToOtherColumn(TaskKey& taskKey, QString& columnName, quint8& prevPos, quint8& newPos);
-    bool updateTaskPosInColumn(TaskKey& taskKey, quint8& prevPos, quint8& newPos);
-    bool updateTaskDescription(TaskKey& taskKey, QString& newDescription);
-    bool deleteTask(TaskKey& taskKey, quint8 &prevPos);
-    QSqlRecord selectTask(TaskKey& taskKey);
+    void addTask(QString columnName, QString description, quint8& pos, QString deadline = "");
+    void updateTaskPosInColumn(QString columnName, QString datetimeCreated, quint8& prevPos, quint8& newPos);
+    void updateTaskDescription(QString columnName, QString datetimeCreated, QString newDescription);
+    void moveTaskToOtherColumn(QString columnName, QString datetimeCreated, QString& newColumnName, quint8& prevPos, quint8& newPos);
+    void removeTask(QString name, QString columnName, QString datetimeCreated, quint8 prevPos);
 
-private:
-    void bindColumnKey(QSqlQuery& query, ColumnKey& columnKey);
-    void bindTaskKey(QSqlQuery& query, TaskKey& taskKey);
-    void selectTasks(QSqlTableModel& model, TaskKey &taskKey, quint8 begin, quint8 end = 255);
-    void selectColumns(QSqlTableModel& model, ColumnKey& columnKey, quint8 begin, quint8 end = 255);
-    void shrinkModel(QSqlTableModel& model, quint8 begin, quint8 end = 255);
-
-private:
-    QSqlDatabase database;
+    QString currentBoardName;
 };
 
 #endif // TASKMANAGER_H

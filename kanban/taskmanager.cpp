@@ -1,285 +1,131 @@
 #include "taskmanager.h"
-#include "config.h"
-#include <QDebug>
 
-TaskManager::TaskManager(): Singleton<TaskManager>(*this)
-{
-    database = QSqlDatabase::addDatabase("QSQLITE");
-
-    if (!QFile::exists(DB_DEFAULT_PATH)) {
-        QString script;
-
-        QFile file(DB_CREATE_SCRIPT_PATH);
-        if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-               return;
-
-        while (!file.atEnd()) {
-            script += file.readLine();
-        }
-
-        SchemaCreateQuery schemaCreateQuery = SchemaCreateQuery(script);
-
-        if (database.open()) {
-            schemaCreateQuery.exec();
-        } else {
-            QMessageBox::critical(nullptr, "", DB_FAIL_MSG);
-        }
-    } else {
-        database.setDatabaseName(DB_DEFAULT_PATH);
-        database.open();
-    }
-}
-
-bool TaskManager::insertBoard(QString &boardName, QString *description, QString *pathToBackground)
-{
-    QSqlQuery query;
-    query.prepare("INSERT INTO board (name, description, path_to_background) VALUES (?, ?, ?)");
-    query.addBindValue(boardName);
-    query.addBindValue(description ? *description: nullptr);
-    query.addBindValue(pathToBackground ? *pathToBackground: nullptr);
-
-    return query.exec();
-}
-
-bool TaskManager::updateBoard(QString &boardName, QString* newBoardName, QString *newDescription, QString *newPathToBackground)
-{
-    QSqlQuery query;
-
-    if (newBoardName and newDescription and newPathToBackground) {
-        query.prepare("UPDATE board SET name = ?, description = ?, path_to_background = ? WHERE name = ?");
-
-        query.addBindValue(*newBoardName);
-        query.addBindValue(*newDescription);
-        query.addBindValue(*newPathToBackground);
-    }
-    else if (newBoardName and newDescription) {
-        query.prepare("UPDATE board SET name = ?, description = ? WHERE name = ?");
-
-        query.addBindValue(*newBoardName);
-        query.addBindValue(*newDescription);
-    }
-    else if (newDescription and newPathToBackground) {
-        query.prepare("UPDATE board SET description = ?, path_to_background = ? WHERE name = ?");
-
-        query.addBindValue(*newDescription);
-        query.addBindValue(*newPathToBackground);
-    }
-    else if (newBoardName and newPathToBackground) {
-        query.prepare("UPDATE board SET name = ?, path_to_background = ? WHERE name = ?");
-
-        query.addBindValue(*newBoardName);
-        query.addBindValue(*newPathToBackground);
-    }
-    else if (newBoardName) {
-
-        query.prepare("UPDATE board SET name = ? WHERE name = ?");
-        query.addBindValue(*newBoardName);
-    }
-    else if (newDescription) {
-        query.prepare("UPDATE board SET description = ? WHERE name = ?");
-
-        query.addBindValue(*newDescription);
-    }
-    else if (newPathToBackground) {
-        query.prepare("UPDATE board SET path_to_background = ? WHERE name = ?");
-
-        query.addBindValue(*newPathToBackground);
-    }
-
-    query.addBindValue(boardName);
-
-    return query.exec();
-}
-
-bool TaskManager::deleteBoard(QString &boardName)
-{
-    QSqlQuery query;
-    query.prepare("DELETE FROM board WHERE name = ?");
-    query.addBindValue(boardName);
-
-    return query.exec();
-}
-
-Board TaskManager::retrieveBoard(QString &board)
+TaskManager::TaskManager()
 {
 
 }
 
-bool TaskManager::insertColumn(ColumnKey &columnKey, quint8 &pos)
+QList<BoardInfo> TaskManager::getBoardsInfos()
 {
     QSqlTableModel model;
-    selectColumns(model, columnKey, pos);
-    shrinkModel(model, pos);
+    DatabaseManager::instance().selectBoards(model);
 
-    QSqlRecord record;
-    record.setValue("board_name", columnKey.first);
-    record.setValue("name", columnKey.second);
-    record.setValue("order_num", pos);
-    model.insertRecord(0, record);
+    QList<BoardInfo> boardsInfos;
+    foreachRecord(model, [&](QSqlRecord& record){
+        BoardInfo boardInfo;
+        boardInfo.name = record.value("name").toString();
+        boardInfo.pathToBackGround = record.value("pathToBackGround").toString();
+        boardInfo.description = record.value("description").toString();
 
-    return model.submitAll();
-}
-
-bool TaskManager::updateColumnPos(ColumnKey& columnKey, quint8& prevPos, quint8& newPos)
-{
-    QSqlTableModel model;
-    selectColumns(model, columnKey, prevPos, newPos);
-    shrinkModel(model, prevPos, newPos);
-
-    quint8 recorInd = newPos > prevPos ? 0: model.rowCount();
-    QSqlRecord record = model.record(recorInd);
-    record.setValue("order_num", newPos);
-    model.setRecord(recorInd, record);
-
-    return model.submitAll();
-}
-
-bool TaskManager::updateColumnName(ColumnKey& columnKey, QString& newColumnName)
-{
-    QSqlQuery query;
-    query.prepare("UPDATE column SET name = ? WHERE board_name = ? AND name = ?");
-    query.addBindValue(newColumnName);
-    bindColumnKey(query, columnKey);
-
-    return query.exec();
-}
-
-bool TaskManager::deleteColumn(ColumnKey &columnKey, quint8& prevPos)
-{
-    QSqlTableModel model;
-    selectColumns(model, columnKey, prevPos);
-    shrinkModel(model, prevPos);
-    model.removeRows(0, 1);
-
-    return model.submitAll();
-}
-
-bool TaskManager::insertTask(TaskKey &taskKey, QString &description, quint8& pos, QString *deadline)
-{
-    QSqlTableModel model;
-    selectTasks(model,taskKey, pos);
-    shrinkModel(model, pos);
-
-    QSqlRecord record;
-    record.setValue("board_name", std::get<0>(taskKey));
-    record.setValue("name", std::get<1>(taskKey));
-    record.setValue("datetime_created", std::get<2>(taskKey));
-    record.setValue("description", description);
-    record.setValue("deadline", deadline ? *deadline: nullptr);
-    model.insertRecord(0, record);
-
-    return model.submitAll();
-}
-
-bool TaskManager::moveTaskToOtherColumn(TaskKey& taskKey, QString& columnName, quint8& prevPos, quint8& newPos)
-{
-    QSqlRecord record = selectTask(taskKey);
-
-    if (deleteTask(taskKey, prevPos)) {
-        taskKey = TaskKey(std::get<0>(taskKey), columnName, std::get<2>(taskKey));
-        QString description = record.value("description").toString();
-        QVariant variant = record.value("deadline");
-
-        if (variant.isValid()) {
-            QString description = variant.toString();
-            return insertTask(taskKey, description, newPos, &description);
-        }
-
-        return insertTask(taskKey, description, newPos, nullptr);
-    }
-    return false;
-}
-bool TaskManager::updateTaskPosInColumn(TaskKey& taskKey, quint8& prevPos, quint8& newPos)
-{
-    QSqlTableModel model;
-    selectTasks(model, taskKey, prevPos, newPos);
-    shrinkModel(model, prevPos, newPos);
-
-    quint8 recorInd = newPos > prevPos ? 0: model.rowCount();
-    QSqlRecord record = model.record(recorInd);
-    record.setValue("order_num", newPos);
-    model.setRecord(recorInd, record);
-
-    return model.submitAll();
-}
-bool TaskManager::updateTaskDescription(TaskKey& taskKey, QString& newDescription){
-    QSqlQuery query;
-    query.prepare("UPDATE task SET description = ? WHERE board_name = ? AND column_name = ? AND datetime_created = ?");
-    query.addBindValue(newDescription);
-    bindTaskKey(query, taskKey);
-
-    return query.exec();
-}
-
-bool TaskManager::deleteTask(TaskKey &taskKey, quint8& prevPos)
-{
-    QSqlTableModel model;
-    selectTasks(model, taskKey, prevPos);
-    shrinkModel(model, prevPos);
-    model.removeRows(0, 1);
-
-    return model.submitAll();
-}
-
-QSqlRecord TaskManager::selectTask(TaskKey &taskKey)
-{
-    QSqlQuery query;
-    query.prepare("SELECT * FROM task WHERE board_name = ? AND column_name = ? AND datetime_created = ?");
-    bindTaskKey(query, taskKey);
-    if (query.exec()) {
-        query.next();
-        return query.record();
-    }
-
-    return QSqlRecord();
-}
-
-void TaskManager::bindColumnKey(QSqlQuery &query, ColumnKey &columnKey)
-{
-    query.addBindValue(columnKey.first);
-    query.addBindValue(columnKey.second);
-}
-
-void TaskManager::bindTaskKey(QSqlQuery &query, TaskKey &taskKey)
-{
-    query.addBindValue(std::get<0>(taskKey));
-    query.addBindValue(std::get<1>(taskKey));
-    query.addBindValue(std::get<2>(taskKey));
-}
-
-void TaskManager::selectTasks(QSqlTableModel &model, TaskKey& taskKey, quint8 begin, quint8 end)
-{
-    if (begin > end) {
-        std::swap<quint8>(begin, end);
-    }
-
-    model.setTable("task");
-    model.setSort(model.fieldIndex("order_num"), Qt::AscendingOrder);
-    model.setFilter("board_name = " + std::get<0>(taskKey) +
-                    " AND column_name = " + std::get<1>(taskKey) +
-                    " AND datetime_created = " + std::get<2>(taskKey) +
-                    " order_num BETWEEN " + QString::number(begin) + " AND " + QString::number(end));
-    model.select();
-}
-
-void TaskManager::selectColumns(QSqlTableModel &model, ColumnKey &columnKey, quint8 begin, quint8 end)
-{
-    if (begin > end) {
-        std::swap<quint8>(begin, end);
-    }
-
-    model.setTable("column");
-    model.setSort(model.fieldIndex("order_num"), Qt::AscendingOrder);
-    model.setFilter("board_name = " + columnKey.first + " AND name = " + columnKey.second +
-                    " order_num BETWEEN " + QString::number(begin) + " AND " + QString::number(end));
-    model.select();
-}
-
-void TaskManager::shrinkModel(QSqlTableModel &model, quint8 begin, quint8 end)
-{
-    foreachRecord(model, [&](QSqlRecord& record) {
-        quint8 pos = record.value("order_num").toUInt();
-        pos += end > begin ? -1: 1;
-        record.setValue("order_num", pos);
+        boardsInfos.push_back(boardInfo);
     });
+    return boardsInfos;
 }
+
+QList<ColumnInfo> TaskManager::getColumnInfosByBoardName(QString boardName)
+{
+    QSqlTableModel model;
+    DatabaseManager::instance().selectColumnsByBoardName(model, boardName);
+
+    QList<ColumnInfo> columnInfos;
+    foreachRecord(model, [&](QSqlRecord& record){
+        ColumnInfo columnInfo;
+        columnInfo.name = record.value("name").toString();
+        columnInfo.boardName = record.value("board_name").toString();
+        columnInfo.pos = record.value("order_num").toUInt();
+
+        columnInfos.push_back(columnInfo);
+    });
+    return columnInfos;
+}
+
+QList<TaskInfo> TaskManager::getTaskInfosByBoardNameAndColumnName(QString boardName, QString columnName)
+{
+    QSqlTableModel model;
+    DatabaseManager::instance().selectTasksByBoardNameAndColumnName(model, boardName, columnName);
+
+    QList<TaskInfo> taskInfos;
+    foreachRecord(model, [&](QSqlRecord& record){
+        TaskInfo taskInfo;
+        taskInfo.datetimeCreated = record.value("datetime_created").toString();
+        taskInfo.deadline = record.value("deadline").toString();
+        taskInfo.description= record.value("description").toString();
+        taskInfo.pos = record.value("order_num").toUInt();
+
+        taskInfos.push_back(taskInfo);
+    });
+    return taskInfos;
+}
+
+void TaskManager::addBoard(QString name, QString descriprion, QString pathToBackGround)
+{
+    DatabaseManager::instance().insertBoard(name, descriprion.isEmpty()? nullptr: &descriprion, pathToBackGround.isEmpty()? nullptr: &pathToBackGround);
+}
+
+void TaskManager::addColumn(QString name, quint8 pos)
+{
+    ColumnKey columnKey(currentBoardName, name);
+    DatabaseManager::instance().insertColumn(columnKey, pos);
+}
+
+void TaskManager::addTask(QString columnName, QString description, quint8 &pos, QString deadline)
+{
+    QDateTime datetime = QDateTime::currentDateTime();
+    QString datetimeCreated = datetime.toString("yy-MM-dd hh:mm::ss");
+
+    TaskKey taskKey(currentBoardName, columnName, datetimeCreated);
+    DatabaseManager::instance().insertTask(taskKey, description, pos, deadline.isEmpty()? nullptr: &deadline);
+}
+
+void TaskManager::updateBoard(QString name, QString *newName, QString *newDescription, QString *newPathToBackground)
+{
+    DatabaseManager::instance().updateBoard(name, newName, newDescription, newPathToBackground);
+}
+
+void TaskManager::updateColumnPos(QString name, quint8 prevPos, quint8 newPos)
+{
+    ColumnKey columnKey(currentBoardName, name);
+    DatabaseManager::instance().updateColumnPos(columnKey, prevPos, newPos);
+}
+
+void TaskManager::updateColumnName(QString name, QString &newColumnName)
+{
+    ColumnKey columnKey(currentBoardName, name);
+    DatabaseManager::instance().updateColumnName(columnKey, newColumnName);
+}
+
+void TaskManager::updateTaskDescription(QString columnName, QString datetimeCreated, QString newDescription)
+{
+    TaskKey taskKey(currentBoardName, columnName, datetimeCreated);
+    DatabaseManager::instance().updateTaskDescription(taskKey, newDescription);
+}
+
+void TaskManager::updateTaskPosInColumn(QString columnName, QString datetimeCreated, quint8 &prevPos, quint8 &newPos)
+{
+    TaskKey taskKey(currentBoardName, columnName, datetimeCreated);
+    DatabaseManager::instance().updateTaskPosInColumn(taskKey, prevPos, newPos);
+}
+
+void TaskManager::moveTaskToOtherColumn(QString columnName, QString datetimeCreated, QString &newColumnName, quint8 &prevPos, quint8 &newPos)
+{
+    TaskKey taskKey(currentBoardName, columnName, datetimeCreated);
+    DatabaseManager::instance().moveTaskToOtherColumn(taskKey, newColumnName, prevPos, newPos);
+}
+
+void TaskManager::removeBoard(QString name)
+{
+    DatabaseManager::instance().deleteBoard(name);
+}
+
+void TaskManager::removeColumn(QString name, quint8 &prevPos)
+{
+    ColumnKey columnKey(currentBoardName, name);
+    DatabaseManager::instance().deleteColumn(columnKey, prevPos);
+}
+
+void TaskManager::removeTask(QString name, QString columnName, QString datetimeCreated, quint8 prevPos)
+{
+    TaskKey taskKey(currentBoardName, columnName, datetimeCreated);
+    DatabaseManager::instance().deleteTask(taskKey, prevPos);
+}
+
