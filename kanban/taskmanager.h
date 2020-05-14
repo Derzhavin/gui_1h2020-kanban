@@ -34,7 +34,6 @@ class TaskManager
 public:
     TaskManager();
 
-    QList<TaskInfo> getTaskInfosByBoardNameAndColumnName(QString boardName, QString columnName);
 
     QList<BoardInfo> getBoardsInfos();
     void addBoard(QString name, QString descriprion = "", QString pathToBackGround = "");
@@ -47,6 +46,7 @@ public:
     void updateColumnName(QString name, QString& newColumnName);
     void removeColumn(QString name, quint8 &prevPos);
 
+    QList<TaskInfo> getTaskInfosByBoardNameAndColumnName(QString boardName, QString columnName);
     void addTask(QString columnName, QString description, quint8& pos, QString deadline = "");
     void updateTaskPosInColumn(QString columnName, QString datetimeCreated, quint8& prevPos, quint8& newPos);
     void updateTaskDescription(QString columnName, QString datetimeCreated, QString newDescription);
