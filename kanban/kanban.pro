@@ -17,6 +17,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     boardselectiondialog.cpp \
+    controller.cpp \
     createprojectdialog.cpp \
     databasemanager.cpp \
     main.cpp \
@@ -29,6 +30,7 @@ SOURCES += \
 HEADERS += \
     boardselectiondialog.h \
     config.h \
+    controller.h \
     createprojectdialog.h \
     databasemanager.h \
     projectreviewdialog.h \

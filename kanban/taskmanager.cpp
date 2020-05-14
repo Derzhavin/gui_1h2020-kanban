@@ -123,7 +123,7 @@ void TaskManager::removeColumn(QString name, quint8 &prevPos)
     DatabaseManager::instance().deleteColumn(columnKey, prevPos);
 }
 
-void TaskManager::removeTask(QString name, QString columnName, QString datetimeCreated, quint8 prevPos)
+void TaskManager::removeTask(QString columnName, QString datetimeCreated, quint8 prevPos)
 {
     TaskKey taskKey(currentBoardName, columnName, datetimeCreated);
     DatabaseManager::instance().deleteTask(taskKey, prevPos);

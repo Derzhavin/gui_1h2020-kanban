@@ -1,6 +1,5 @@
 #include "projectwindow.h"
 #include "ui_mainwindow.h"
-#include "databasemanager.h"
 
 ProjectWindow::ProjectWindow(QWidget *parent)
     : QMainWindow(parent)
