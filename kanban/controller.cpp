@@ -60,6 +60,7 @@ void Controller::openBoardWindow()
         if (!taskManager.getBoard(boardName).data()) {
             taskManager.addBoard(boardName, description);
 
+            createProjectDialog.clearEdits();
             createProjectDialog.close();
 
             centerWidget(&projectWindow);

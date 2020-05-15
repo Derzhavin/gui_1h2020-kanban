@@ -30,7 +30,6 @@ void CreateProjectDialog::goBackPushButtonClick()
 void CreateProjectDialog::createBoardPushButtonClick()
 {
     if (!ui->boardNameLineEdit->text().isEmpty()) {
-        clearEdits();
         emit openBoardWindow();
     } else {
         // To do:
