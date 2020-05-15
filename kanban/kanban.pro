@@ -16,7 +16,9 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    animationmanager.cpp \
     boardselectiondialog.cpp \
+    controller.cpp \
     createprojectdialog.cpp \
     databasemanager.cpp \
     main.cpp \
@@ -27,8 +29,10 @@ SOURCES += \
     taskmanager.cpp
 
 HEADERS += \
+    animationmanager.h \
     boardselectiondialog.h \
     config.h \
+    controller.h \
     createprojectdialog.h \
     databasemanager.h \
     projectreviewdialog.h \

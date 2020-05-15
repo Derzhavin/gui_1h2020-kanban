@@ -15,6 +15,14 @@ public:
     explicit ProjectReviewDialog(QWidget *parent = nullptr);
     ~ProjectReviewDialog();
 
+public slots:
+    void createBoardtPushButtonClick();
+    void openBoardtPushButtonClick();
+
+signals:
+    void createBoard();
+    void openBoard();
+
 private:
     Ui::ProjectReviewDialog *ui;
 };

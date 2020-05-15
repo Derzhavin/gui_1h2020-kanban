@@ -1,5 +1,5 @@
-#ifndef BOARDSELECTIONDIALOG_H
-#define BOARDSELECTIONDIALOG_H
+#ifndef PROJECTSELECTIONDIALOG_H
+#define PROJECTSELECTIONDIALOG_H
 
 #include <QDialog>
 
@@ -15,16 +15,8 @@ public:
     explicit BoardSelectionDialog(QWidget *parent = nullptr);
     ~BoardSelectionDialog();
 
-public slots:
-    void goBackPushButtonClick();
-    void applyChoicePushButtonClick();
-
-signals:
-    void reviewBoards();
-    void openBoardWindow();
-
 private:
     Ui::BoardSelectionDialog *ui;
 };
 
-#endif // BOARDSELECTIONDIALOG_H
+#endif // PROJECTSELECTIONDIALOG_H

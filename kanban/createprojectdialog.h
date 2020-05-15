@@ -15,6 +15,14 @@ public:
     explicit CreateProjectDialog(QWidget *parent = nullptr);
     ~CreateProjectDialog();
 
+public slots:
+    void goBackPushButtonClick();
+    void createBoardPushButtonClick();
+
+signals:
+    void reviewBoards();
+    void openBoardWindow();
+
 private:
     Ui::CreateProjectDialog *ui;
 };

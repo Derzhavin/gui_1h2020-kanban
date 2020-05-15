@@ -50,7 +50,7 @@ public:
     void updateTaskPosInColumn(QString columnName, QString datetimeCreated, quint8& prevPos, quint8& newPos);
     void updateTaskDescription(QString columnName, QString datetimeCreated, QString newDescription);
     void moveTaskToOtherColumn(QString columnName, QString datetimeCreated, QString& newColumnName, quint8& prevPos, quint8& newPos);
-    void removeTask(QString name, QString columnName, QString datetimeCreated, quint8 prevPos);
+    void removeTask(QString columnName, QString datetimeCreated, quint8 prevPos);
 
     QString currentBoardName;
 };
