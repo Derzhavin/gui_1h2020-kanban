@@ -41,6 +41,7 @@ private:
     BoardSelectionDialog boardSelectDialog;
 
     TaskManager taskManager;
+//    BoardModel model;
 };
 
 #endif // CONTROLLER_H

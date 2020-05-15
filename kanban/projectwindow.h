@@ -1,6 +1,7 @@
 #ifndef PROJECTWINDOW_H
 #define PROJECTWINDOW_H
 
+#include <functional>
 
 #include <QMainWindow>
 
@@ -16,6 +17,8 @@ class ProjectWindow : public QMainWindow
 public:
     ProjectWindow(QWidget *parent = nullptr);
     ~ProjectWindow();
+
+    void show(std::function<void()> callback);
 
 public slots:
     void goToBoardsPushButtonClick();

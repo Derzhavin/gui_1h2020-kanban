@@ -59,12 +59,15 @@ void Controller::openBoardWindow()
 
         if (!taskManager.getBoard(boardName).data()) {
             taskManager.addBoard(boardName, description);
+            taskManager.currentBoardName = boardName;
 
             createProjectDialog.clearEdits();
             createProjectDialog.close();
 
             centerWidget(&projectWindow);
-            projectWindow.show();
+            projectWindow.show([&]() {
+
+            });
         } else {
             QString msg =  "The board with this name is exist.";
             QMessageBox::information(&createProjectDialog,  createProjectDialog.windowTitle(), msg);

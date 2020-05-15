@@ -15,6 +15,12 @@ ProjectWindow::~ProjectWindow()
     delete ui;
 }
 
+void ProjectWindow::show(std::function<void ()> callback)
+{
+    QWidget::show();
+    callback();
+}
+
 void ProjectWindow::goToBoardsPushButtonClick()
 {
     emit reviewBoards();
