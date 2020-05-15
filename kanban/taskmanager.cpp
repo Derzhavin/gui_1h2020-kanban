@@ -22,6 +22,22 @@ QList<BoardInfo> TaskManager::getBoardsInfos()
     return boardsInfos;
 }
 
+QSharedPointer<BoardInfo> TaskManager::getBoard(QString name)
+{
+    QSqlRecord record = DatabaseManager::instance().selectBoard(name);
+
+    if (record.value("name").toString().isEmpty()) {
+        return QSharedPointer<BoardInfo>();
+    }
+
+    BoardInfo* boardInfo = new BoardInfo;
+    boardInfo->name = record.value("name").toString();
+    boardInfo->pathToBackGround = record.value("pathToBackGround").toString();
+    boardInfo->description = record.value("description").toString();
+
+    return QSharedPointer<BoardInfo>(boardInfo);
+}
+
 QList<ColumnInfo> TaskManager::getColumnInfosByBoardName(QString boardName)
 {
     QSqlTableModel model;

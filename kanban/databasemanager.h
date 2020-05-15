@@ -29,6 +29,7 @@ public:
     bool updateBoard(QString& boardName, QString* newBoardName, QString* newDescription = nullptr, QString* newPathToBackground = nullptr);
     bool deleteBoard(QString& boardName);
     void selectBoards(QSqlTableModel& model);
+    QSqlRecord selectBoard(QString& boardName);
 
     bool insertColumn(ColumnKey& columnKey, quint8& pos);
     bool updateColumnPos(ColumnKey& columnKey, quint8& prevPos, quint8& newPos);

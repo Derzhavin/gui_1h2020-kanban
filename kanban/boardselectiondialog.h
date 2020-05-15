@@ -11,6 +11,7 @@ class BoardSelectionDialog : public QDialog
 {
     Q_OBJECT
 
+    friend class Controller;
 public:
     explicit BoardSelectionDialog(QWidget *parent = nullptr);
     ~BoardSelectionDialog();
