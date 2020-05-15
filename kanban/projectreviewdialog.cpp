@@ -13,13 +13,11 @@ ProjectReviewDialog::ProjectReviewDialog(QWidget *parent) :
 
 void ProjectReviewDialog::createBoardtPushButtonClick()
 {
-    close();
     emit createBoard();
 }
 
 void ProjectReviewDialog::openBoardtPushButtonClick()
 {
-    close();
     emit openBoard();
 }
 

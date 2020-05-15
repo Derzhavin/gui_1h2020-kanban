@@ -12,5 +12,6 @@ void Controller::run()
 
 void Controller::createBoard()
 {
+    qobject_cast<QDialog*>(sender())->close();
     createProjectDialog.show();
 }
