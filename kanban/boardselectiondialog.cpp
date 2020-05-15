@@ -23,5 +23,12 @@ void BoardSelectionDialog::goBackPushButtonClick()
 
 void BoardSelectionDialog::applyChoicePushButtonClick()
 {
-    emit openBoardWindow();
+    if (!ui->chosenBoardLineEdit->text().isEmpty()) {
+        emit openBoardWindow();
+    } else {
+        // To do:
+        // Добавить анимацию chosenBoardLineEdit менеджером анимации
+    }
 }
+
+////    QObject::connect(timeLine, &QTimeLine::finished, timeLine, &QTimeLine::deleteLater);

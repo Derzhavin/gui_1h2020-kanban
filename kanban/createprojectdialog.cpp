@@ -23,5 +23,10 @@ void CreateProjectDialog::goBackPushButtonClick()
 
 void CreateProjectDialog::createBoardPushButtonClick()
 {
-    emit openBoardWindow();
+    if (!ui->boardNameLineEdit->text().isEmpty()) {
+        emit openBoardWindow();
+    } else {
+        // To do:
+        // Добавить анимацию boardNameLineEdit менеджером анимации
+    }
 }
