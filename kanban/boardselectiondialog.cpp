@@ -6,9 +6,22 @@ BoardSelectionDialog::BoardSelectionDialog(QWidget *parent) :
     ui(new Ui::BoardSelectionDialog)
 {
     ui->setupUi(this);
+
+    QObject::connect(ui->goBackPushButton, SIGNAL(clicked()), this, SLOT(goBackPushButtonClick()));
+    QObject::connect(ui->applyChoicePushButton, SIGNAL(clicked()), this, SLOT(applyChoicePushButtonClick()));
 }
 
 BoardSelectionDialog::~BoardSelectionDialog()
 {
     delete ui;
+}
+
+void BoardSelectionDialog::goBackPushButtonClick()
+{
+    emit reviewBoards();
+}
+
+void BoardSelectionDialog::applyChoicePushButtonClick()
+{
+    emit openBoardWindow();
 }

@@ -6,6 +6,8 @@
 #include "createprojectdialog.h"
 #include "boardselectiondialog.h"
 
+#include <QGuiApplication>
+#include <QScreen>
 #include <QObject>
 
 class Controller: public QObject
@@ -17,7 +19,11 @@ public:
     void run();
 
 public slots:
+    void openBoard();
     void createBoard();
+
+    void reviewBoards();
+    void openBoardWindow();
 
 private:
     ProjectWindow projectWindow;

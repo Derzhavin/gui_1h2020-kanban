@@ -67,6 +67,9 @@
          <height>30</height>
         </size>
        </property>
+       <property name="cursor">
+        <cursorShape>PointingHandCursor</cursorShape>
+       </property>
        <property name="text">
         <string>Back</string>
        </property>
@@ -79,6 +82,9 @@
          <width>50</width>
          <height>30</height>
         </size>
+       </property>
+       <property name="cursor">
+        <cursorShape>PointingHandCursor</cursorShape>
        </property>
        <property name="toolTip">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Apply board choice&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>

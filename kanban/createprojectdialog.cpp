@@ -6,9 +6,22 @@ CreateProjectDialog::CreateProjectDialog(QWidget *parent) :
     ui(new Ui::CreateProjectDialog)
 {
     ui->setupUi(this);
+
+    QObject::connect(ui->goBackPushButton, SIGNAL(clicked()), this, SLOT(goBackPushButtonClick()));
+    QObject::connect(ui->CreateProjectPushButton, SIGNAL(clicked()), this, SLOT(createBoardPushButtonClick()));
 }
 
 CreateProjectDialog::~CreateProjectDialog()
 {
     delete ui;
+}
+
+void CreateProjectDialog::goBackPushButtonClick()
+{
+    emit reviewBoards();
+}
+
+void CreateProjectDialog::createBoardPushButtonClick()
+{
+    emit openBoardWindow();
 }

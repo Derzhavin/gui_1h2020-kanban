@@ -15,6 +15,12 @@ public:
     ProjectWindow(QWidget *parent = nullptr);
     ~ProjectWindow();
 
+public slots:
+    void goToBoardsPushButtonClick();
+
+signals:
+    void reviewBoards();
+
 private:
     Ui::MainWindow *ui;
 };

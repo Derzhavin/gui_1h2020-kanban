@@ -15,6 +15,14 @@ public:
     explicit BoardSelectionDialog(QWidget *parent = nullptr);
     ~BoardSelectionDialog();
 
+public slots:
+    void goBackPushButtonClick();
+    void applyChoicePushButtonClick();
+
+signals:
+    void reviewBoards();
+    void openBoardWindow();
+
 private:
     Ui::BoardSelectionDialog *ui;
 };
