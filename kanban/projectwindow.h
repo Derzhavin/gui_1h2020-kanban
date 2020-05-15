@@ -1,6 +1,7 @@
 #ifndef PROJECTWINDOW_H
 #define PROJECTWINDOW_H
 
+
 #include <QMainWindow>
 
 QT_BEGIN_NAMESPACE
@@ -11,6 +12,7 @@ class ProjectWindow : public QMainWindow
 {
     Q_OBJECT
 
+    friend class Controller;
 public:
     ProjectWindow(QWidget *parent = nullptr);
     ~ProjectWindow();

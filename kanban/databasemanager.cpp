@@ -107,6 +107,19 @@ void DatabaseManager::selectBoards(QSqlTableModel& model)
     model.submitAll();
 }
 
+QSqlRecord DatabaseManager::selectBoard(QString &boardName)
+{
+    QSqlQuery query;
+    query.prepare("SELECT * FROM board WHERE name = ?");
+    query.addBindValue(boardName);
+    if (query.exec()) {
+        query.next();
+        return query.record();
+    }
+
+    return QSqlRecord();
+}
+
 bool DatabaseManager::insertColumn(ColumnKey &columnKey, quint8 &pos)
 {
     QSqlTableModel model;

@@ -9,6 +9,7 @@
 #include <QSqlRecord>
 #include <QSqlTableModel>
 #include <QDateTime>
+#include <QSharedPointer>
 
 struct BoardInfo {
     QString name;
@@ -35,6 +36,7 @@ public:
     TaskManager();
 
     QList<BoardInfo> getBoardsInfos();
+    QSharedPointer<BoardInfo> getBoard(QString name);
     void addBoard(QString name, QString descriprion = "", QString pathToBackGround = "");
     void updateBoard(QString name, QString* newName, QString* newDescription = nullptr, QString* newPathToBackground = nullptr);
     void removeBoard(QString name);

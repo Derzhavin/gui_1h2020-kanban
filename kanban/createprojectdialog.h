@@ -11,9 +11,12 @@ class CreateProjectDialog : public QDialog
 {
     Q_OBJECT
 
+    friend class Controller;
 public:
     explicit CreateProjectDialog(QWidget *parent = nullptr);
     ~CreateProjectDialog();
+
+    void clearEdits();
 
 public slots:
     void goBackPushButtonClick();

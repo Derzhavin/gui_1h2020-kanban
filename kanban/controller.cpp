@@ -19,6 +19,13 @@ void Controller::run()
     projectReviewDialog.show();
 }
 
+void Controller::centerWidget(QWidget *widget)
+{
+    QRect r = widget->geometry();
+    r.moveCenter(QGuiApplication::screens().first()->availableGeometry().center());
+    widget->setGeometry(r);
+}
+
 void Controller::openBoard()
 {
     qobject_cast<QDialog*>(sender())->close();
@@ -44,10 +51,22 @@ void Controller::reviewBoards()
 
 void Controller::openBoardWindow()
 {
-    qobject_cast<QDialog*>(sender())->close();
+    QDialog *dialog = qobject_cast<QDialog*>(sender());
 
-    QRect r = projectWindow.geometry();
-    r.moveCenter(QGuiApplication::screens().first()->availableGeometry().center());
-    projectWindow.setGeometry(r);
-    projectWindow.show();
+    if (qobject_cast<CreateProjectDialog*>(dialog)) {
+        QString boardName = createProjectDialog.ui->boardNameLineEdit->text();
+        QString description = createProjectDialog.ui->descriptionTextEdit->toPlainText();
+
+        if (!taskManager.getBoard(boardName).data()) {
+            taskManager.addBoard(boardName, description);
+
+            createProjectDialog.close();
+
+            centerWidget(&projectWindow);
+            projectWindow.show();
+        } else {
+            QString msg =  "The board with this name is exist.";
+            QMessageBox::information(&createProjectDialog,  createProjectDialog.windowTitle(), msg);
+        }
+    }
 }
