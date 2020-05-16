@@ -9,9 +9,8 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-       TaskInputDialog d;
-       d.exec();
-//    Controller controller;
-//    controller.run();
+    Controller controller;
+    controller.run();
+
     return a.exec();
 }

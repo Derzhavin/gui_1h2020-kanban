@@ -2,7 +2,6 @@
 #define TASKMANAGER_H
 
 #include "databasemanager.h"
-#include "sqltablemodelextension.h"
 
 #include <QList>
 #include <QString>
@@ -44,16 +43,16 @@ public:
     QList<ColumnInfo> getColumnInfosByBoardName(QString boardName);
     QSharedPointer<ColumnInfo> getColumn(QString name);
     void addColumn(QString name);
-    void updateColumnPos(QString name, quint8 prevPos, quint8 newPos);
+    void updateColumnPos(QString name, quint8 newPos);
     void renameColumn(QString name, QString& newColumnName);
-    void removeColumn(QString name, quint8 &prevPos);
+    void removeColumn(QString name);
 
-    QList<TaskInfo> getTaskInfosByBoardNameAndColumnName(QString boardName, QString columnName);
-    void addTask(QString columnName, QString description, quint8& pos, QString deadline = "");
-    void updateTaskPosInColumn(QString columnName, QString datetimeCreated, quint8& prevPos, quint8& newPos);
+    QList<TaskInfo> getTaskInfosByBoardColumn(QString boardName, QString columnName);
+    QString addTask(QString columnName, QString description, QString deadline = "");
+    void updateTaskPosInColumn(QString columnName, QString datetimeCreated, quint8& newPos);
     void updateTaskDescription(QString columnName, QString datetimeCreated, QString newDescription);
-    void moveTaskToOtherColumn(QString columnName, QString datetimeCreated, QString& newColumnName, quint8& prevPos, quint8& newPos);
-    void removeTask(QString columnName, QString datetimeCreated, quint8 prevPos);
+    void moveTaskToOtherColumn(QString columnName, QString datetimeCreated, QString& newColumnName, quint8& newPos);
+    void removeTask(QString columnName, QString datetimeCreated);
 
     QString currentBoardName;
 };

@@ -102,9 +102,7 @@ bool DatabaseManager::deleteBoard(QString &boardName)
 
 void DatabaseManager::selectBoards(QSqlTableModel& model)
 {
-    model.setTable("board");
-    model.select();
-    model.submitAll();
+    selectFromTable(model, "board", [&](){});
 }
 
 QSqlRecord DatabaseManager::selectBoard(QString &boardName)
@@ -123,6 +121,7 @@ QSqlRecord DatabaseManager::selectBoard(QString &boardName)
 bool DatabaseManager::insertBackColumn(ColumnKey &columnKey)
 {
     quint8 maxColumnPos = findMaxColumnPosInBoard(columnKey.first);
+
     QSqlQuery query;
     query.prepare("INSERT INTO column (board_name, name, order_num) VALUES (?, ?, ?)");
     bindColumnKey(query, columnKey);
@@ -131,11 +130,19 @@ bool DatabaseManager::insertBackColumn(ColumnKey &columnKey)
     return query.exec();
 }
 
-bool DatabaseManager::updateColumnPos(ColumnKey& columnKey, quint8& prevPos, quint8& newPos)
+bool DatabaseManager::updateColumnPos(ColumnKey& columnKey, quint8& newPos)
 {
+    quint8 prevPos = selectColumn(columnKey).value("order_num").toUInt();
+
     QSqlTableModel model;
-    selectColumns(model, columnKey, prevPos, newPos);
-    shrinkModel(model, prevPos > newPos);
+    QString filter = "board_name = " + columnKey.first +
+                     "name = " + columnKey.second;
+
+    selectFromTable(model, "column", [&]() {
+        model.setSort(model.fieldIndex("order_num"), Qt::AscendingOrder);
+        model.setFilter(filter);
+    });
+    moveRowsByOne(model, newPos < prevPos);
 
     quint8 recorInd = newPos > prevPos ? 0: model.rowCount();
     QSqlRecord record = model.record(recorInd);
@@ -155,11 +162,17 @@ bool DatabaseManager::updateColumnName(ColumnKey& columnKey, QString& newColumnN
     return query.exec();
 }
 
-bool DatabaseManager::deleteColumn(ColumnKey &columnKey, quint8& prevPos)
+bool DatabaseManager::deleteColumn(ColumnKey &columnKey)
 {
     QSqlTableModel model;
-    selectColumns(model, columnKey, prevPos);
-    shrinkModel(model, prevPos);
+    QString filter = "board_name = " + columnKey.first +
+                     "name = " + columnKey.second;
+
+    selectFromTable(model, "column", [&]() {
+        model.setSort(model.fieldIndex("order_num"), Qt::AscendingOrder);
+        model.setFilter(filter);
+    });
+    moveRowsByOne(model, false);
     model.removeRows(0, 1);
 
     return model.submitAll();
@@ -167,10 +180,7 @@ bool DatabaseManager::deleteColumn(ColumnKey &columnKey, quint8& prevPos)
 
 void DatabaseManager::selectColumnsByBoardName(QSqlTableModel &model, QString &boardName)
 {
-    model.setTable("column");
-    model.setFilter("board_name = " + boardName);
-    model.select();
-    model.submitAll();
+    selectFromTable(model, "column", [&]() {model.setFilter("board_name = " + boardName);});
 }
 
 QSqlRecord DatabaseManager::selectColumn(ColumnKey &columnKey)
@@ -182,7 +192,7 @@ QSqlRecord DatabaseManager::selectColumn(ColumnKey &columnKey)
         query.next();
         return query.record();
     }
-    qDebug() << "???????";
+
     return QSqlRecord();
 }
 
@@ -195,17 +205,35 @@ quint8 DatabaseManager::findMaxColumnPosInBoard(QString boardName)
         query.next();
         return query.record().value("max_order_num").toUInt();
     }
+
     return 0;
 }
 
-bool DatabaseManager::insertTaskFront(TaskKey &taskKey, QString &description, QString *deadline)
+bool DatabaseManager::insertBackTask(TaskKey &taskKey, QString &description, QString *deadline)
 {
     QSqlTableModel model;
+    ColumnKey columnKey(std::get<0>(taskKey), std::get<1>(taskKey));
+    quint8 maxPos = findMaxTaskPosInColumn(columnKey);
 
-    shrinkModel()
+    QSqlQuery query;
+    query.prepare("INSERT INTO column ("
+                  "board_name, "
+                  "column_name, "
+                  "datetime_created, "
+                  "description, "
+                  "deadline, "
+                  "order_num"
+                  ") VALUES (?, ?, ?, ?, ?, ?)");
+    bindTaskKey(query, taskKey);
+    query.addBindValue(description);
+    query.addBindValue(deadline ? *deadline: nullptr);
+    query.addBindValue(maxPos + 1);
+
+    return query.exec();
+
 }
 
-bool DatabaseManager::moveTaskToOtherColumn(TaskKey& taskKey, QString& newColumnName, quint8& prevPos, quint8& newPos)
+bool DatabaseManager::moveTaskToOtherColumn(TaskKey& taskKey, QString& newColumnName, quint8& newPos)
 {
 //    QSqlRecord record = selectTask(taskKey);
 
@@ -223,11 +251,26 @@ bool DatabaseManager::moveTaskToOtherColumn(TaskKey& taskKey, QString& newColumn
 //    }
     return false;
 }
-bool DatabaseManager::updateTaskPosInColumn(TaskKey& taskKey, quint8& prevPos, quint8& newPos)
+bool DatabaseManager::updateTaskPosInColumn(TaskKey& taskKey, quint8& newPos)
 {
+    quint8 prevPos = selectTask(taskKey).value("order_num").toUInt();
+
     QSqlTableModel model;
-    selectTasks(model, taskKey, prevPos, newPos);
-    shrinkModel(model, prevPos > newPos);
+
+    QString filter = "board_name = " + std::get<0>(taskKey) +
+                     " AND "
+                     "column_name = " + std::get<1>(taskKey) +
+                     "WHERE"
+                     "order_num BETWEEN " +
+                     QString::number(std::min(newPos, prevPos)) +
+                     " AND " +
+                     QString::number(std::max(newPos, prevPos));
+
+    selectFromTable(model, "task", [&]() {
+        model.setSort(model.fieldIndex("order_num"), Qt::AscendingOrder);
+        model.setFilter(filter);
+    });
+    moveRowsByOne(model, newPos < prevPos);
 
     quint8 recorInd = newPos > prevPos ? 0: model.rowCount();
     QSqlRecord record = model.record(recorInd);
@@ -245,22 +288,54 @@ bool DatabaseManager::updateTaskDescription(TaskKey& taskKey, QString& newDescri
     return query.exec();
 }
 
-bool DatabaseManager::deleteTask(TaskKey &taskKey, quint8& prevPos)
+bool DatabaseManager::deleteTask(TaskKey &taskKey)
 {
+    quint8 prevPos = selectTask(taskKey).value("order_num").toUInt();
+
     QSqlTableModel model;
-    selectTasks(model, taskKey, prevPos);
-    shrinkModel(model, prevPos);
+
+    QString filter = "board_name = " + std::get<0>(taskKey) +
+                     " AND "
+                     "column_name = " + std::get<1>(taskKey) +
+                     "WHERE"
+                     "order_num BETWEEN " +
+                     QString::number(prevPos) +
+                     " AND " +
+                     QString::number(255);
+
+    selectFromTable(model, "task", [&]() {
+        model.setSort(model.fieldIndex("order_num"), Qt::AscendingOrder);
+        model.setFilter(filter);
+    });
+    moveRowsByOne(model, false);
     model.removeRows(0, 1);
 
     return model.submitAll();
 }
 
-void DatabaseManager::selectTasksByBoardNameAndColumnName(QSqlTableModel &model, QString &boardName, QString &columnName)
+void DatabaseManager::foreachRecordInModel(QSqlTableModel &model, std::function<void (QSqlRecord &)> callback)
 {
-    model.setTable("column");
-    model.setFilter("board_name = " + boardName + " AND column_name = " + columnName);
+    for (quint8 i = 0; i < model.rowCount(); ++i) {
+        QSqlRecord record = model.record(i);
+        callback(record);
+        model.setRecord(i, record);
+    }
+}
+
+void DatabaseManager::selectFromTable(QSqlTableModel& model,QString tableName, std::function<void()> callback)
+{
+    model.setTable(tableName);
+    callback();
     model.select();
-    model.submitAll();
+}
+
+void DatabaseManager::moveRowsByOne(QSqlTableModel &model, bool direction)
+{
+    foreachRecordInModel(model, [&](QSqlRecord& record) {
+        quint8 pos = record.value("order_num").toUInt();
+        pos += direction ? -1: 1;
+        record.setValue("order_num", pos);
+    });
 }
 
 quint8 DatabaseManager::findMaxTaskPosInColumn(ColumnKey& columnKey)
@@ -272,7 +347,15 @@ quint8 DatabaseManager::findMaxTaskPosInColumn(ColumnKey& columnKey)
         query.next();
         return query.record().value("max_order_num").toUInt();
     }
+
     return 0;
+}
+
+void DatabaseManager::selectTasksByColumn(QSqlTableModel &model, ColumnKey &columnKey)
+{
+    selectFromTable(model, "column", [&]() {
+        model.setFilter("board_name = " + columnKey.first + "name = " + columnKey.second);
+    });
 }
 
 QSqlRecord DatabaseManager::selectTask(TaskKey &taskKey)
@@ -299,40 +382,4 @@ void DatabaseManager::bindTaskKey(QSqlQuery &query, TaskKey &taskKey)
     query.addBindValue(std::get<0>(taskKey));
     query.addBindValue(std::get<1>(taskKey));
     query.addBindValue(std::get<2>(taskKey));
-}
-
-void DatabaseManager::selectTasks(QSqlTableModel &model, TaskKey& taskKey, quint8 begin, quint8 end)
-{
-    if (begin > end) {
-        std::swap<quint8>(begin, end);
-    }
-
-    model.setTable("task");
-    model.setSort(model.fieldIndex("order_num"), Qt::AscendingOrder);
-    model.setFilter("board_name = \"" + std::get<0>(taskKey) +
-                    "\" AND column_name = \"" + std::get<1>(taskKey) +
-                    "\" AND (order_num BETWEEN \"" + QString::number(begin) + "\" AND \"" + QString::number(end) + "\")");
-    model.select();
-}
-
-void DatabaseManager::selectColumns(QSqlTableModel &model, ColumnKey &columnKey, quint8 begin, quint8 end)
-{
-    if (begin > end) {
-        std::swap<quint8>(begin, end);
-    }
-
-    model.setTable("column");
-    model.setSort(model.fieldIndex("order_num"), Qt::AscendingOrder);
-    model.setFilter("board_name = \"" + columnKey.first + "\"" +
-                    " AND (order_num BETWEEN \"" + QString::number(begin) + "\" AND \"" + QString::number(end) +"\")");
-    model.select();
-}
-
-void DatabaseManager::shrinkModel(QSqlTableModel &model, bool direction)
-{
-    foreachRecord(model, [&](QSqlRecord& record) {
-        quint8 pos = record.value("order_num").toUInt();
-        pos += direction ? -1: 1;
-        record.setValue("order_num", pos);
-    });
 }
