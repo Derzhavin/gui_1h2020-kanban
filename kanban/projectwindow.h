@@ -1,9 +1,13 @@
 #ifndef PROJECTWINDOW_H
 #define PROJECTWINDOW_H
 
-#include <functional>
+#include "columnwidget.h"
 
+#include <functional>
 #include <QMainWindow>
+#include <QObject>
+
+class ColumnWidget;
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -23,10 +27,12 @@ public:
 public slots:
     void goToBoardsPushButtonClick();
     void addColumnToolButtonClick();
+    void removeColumnPushButtonClick();
 
 signals:
     void reviewBoards();
     void addColumn();
+    void removeColumn(ColumnWidget *columnWidget);
 
 private:
     Ui::MainWindow *ui;

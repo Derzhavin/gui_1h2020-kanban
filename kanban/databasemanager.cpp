@@ -307,10 +307,9 @@ void DatabaseManager::selectTasks(QSqlTableModel &model, TaskKey& taskKey, quint
 
     model.setTable("task");
     model.setSort(model.fieldIndex("order_num"), Qt::AscendingOrder);
-    model.setFilter("board_name = " + std::get<0>(taskKey) +
-                    " AND column_name = " + std::get<1>(taskKey) +
-                    " AND datetime_created = " + std::get<2>(taskKey) +
-                    " order_num BETWEEN " + QString::number(begin) + " AND " + QString::number(end));
+    model.setFilter("board_name = \"" + std::get<0>(taskKey) +
+                    "\" AND column_name = \"" + std::get<1>(taskKey) +
+                    "\" AND (order_num BETWEEN \"" + QString::number(begin) + "\" AND \"" + QString::number(end) + "\")");
     model.select();
 }
 
@@ -322,8 +321,8 @@ void DatabaseManager::selectColumns(QSqlTableModel &model, ColumnKey &columnKey,
 
     model.setTable("column");
     model.setSort(model.fieldIndex("order_num"), Qt::AscendingOrder);
-    model.setFilter("board_name = " + columnKey.first + " AND name = " + columnKey.second +
-                    " order_num BETWEEN " + QString::number(begin) + " AND " + QString::number(end));
+    model.setFilter("board_name = \"" + columnKey.first + "\"" +
+                    " AND (order_num BETWEEN \"" + QString::number(begin) + "\" AND \"" + QString::number(end) +"\")");
     model.select();
 }
 

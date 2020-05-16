@@ -1,6 +1,6 @@
 #include "columnwidget.h"
 
-ColumnWidget::ColumnWidget(QString columnName, QWidget *parent): QWidget(parent)
+ColumnWidget::ColumnWidget(QString columnName, QWidget *parent): QWidget(parent), columnName(columnName)
 {
     setMaximumWidth(COLUMN_WIDGET_WIDTH);
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum);
@@ -11,6 +11,9 @@ ColumnWidget::ColumnWidget(QString columnName, QWidget *parent): QWidget(parent)
     addTaskPushButton = new QPushButton("Add Task");
     tasksListView = new QListView(this);
 
+    ProjectWindow* projectWindow = qobject_cast<ProjectWindow*>(QWidget::window());
+    QObject::connect(removeColumnPushButton, SIGNAL(clicked()), projectWindow, SLOT(removeColumnPushButtonClick()));
+
     columnNameLabel->setAlignment(Qt::AlignCenter);
 
     setLayout(new QVBoxLayout);
@@ -19,4 +22,9 @@ ColumnWidget::ColumnWidget(QString columnName, QWidget *parent): QWidget(parent)
     layout()->addWidget(renameColumnPushButton);
     layout()->addWidget(removeColumnPushButton);
     layout()->addWidget(tasksListView);
+}
+
+ColumnWidget::~ColumnWidget()
+{
+
 }

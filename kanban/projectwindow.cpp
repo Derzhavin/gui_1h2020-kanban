@@ -1,6 +1,8 @@
 #include "projectwindow.h"
 #include "ui_projectwindow.h"
 
+#include <QDebug>
+
 ProjectWindow::ProjectWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -30,5 +32,10 @@ void ProjectWindow::goToBoardsPushButtonClick()
 void ProjectWindow::addColumnToolButtonClick()
 {
     emit addColumn();
+}
+
+void ProjectWindow::removeColumnPushButtonClick()
+{
+    emit removeColumn(qobject_cast<ColumnWidget*>(sender()->parent()));
 }
 

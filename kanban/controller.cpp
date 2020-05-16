@@ -15,7 +15,7 @@ Controller::Controller()
 
     QObject::connect(&projectWindow, SIGNAL(reviewBoards()), this, SLOT(reviewBoards()));
     QObject::connect(&projectWindow, SIGNAL(addColumn()), this, SLOT(addColumn()));
-
+    QObject::connect(&projectWindow, SIGNAL(removeColumn(ColumnWidget*)), this, SLOT(removeColumn(ColumnWidget*)));
 }
 
 void Controller::run()
@@ -105,7 +105,15 @@ void Controller::addColumn()
     }
 }
 
-void Controller::addTask()
+void Controller::removeColumn(ColumnWidget *columnWidget)
+{
+    BoardWidget *boardWidget = projectWindow.ui->boardWidget;
+    quint8 pos = boardWidget->getColumnWidgetPos(columnWidget) + 1;
+    taskManager.removeColumn(columnWidget->columnName, pos);
+    boardWidget->removeColumnWidgetAtPos(pos - 1);
+}
+
+void Controller::addTask(ColumnWidget *columnWidget)
 {
 
 }

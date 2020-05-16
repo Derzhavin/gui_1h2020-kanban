@@ -35,7 +35,8 @@ public slots:
     void openBoardWindow();
 
     void addColumn();
-    void addTask();
+    void removeColumn(ColumnWidget *columnWidget);
+    void addTask(ColumnWidget *columnWidget);
 
 private:
     ProjectWindow projectWindow;
