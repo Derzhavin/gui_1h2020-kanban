@@ -13,6 +13,7 @@ ColumnWidget::ColumnWidget(QString columnName, QWidget *parent): QWidget(parent)
 
     ProjectWindow* projectWindow = qobject_cast<ProjectWindow*>(QWidget::window());
     QObject::connect(removeColumnPushButton, SIGNAL(clicked()), projectWindow, SLOT(removeColumnPushButtonClick()));
+    QObject::connect(renameColumnPushButton, SIGNAL(clicked()), projectWindow, SLOT(renameColumnPushButtonClick()));
 
     columnNameLabel->setAlignment(Qt::AlignCenter);
 
@@ -27,4 +28,10 @@ ColumnWidget::ColumnWidget(QString columnName, QWidget *parent): QWidget(parent)
 ColumnWidget::~ColumnWidget()
 {
 
+}
+
+void ColumnWidget::setColumnName(QString name)
+{
+    columnName = name;
+    columnNameLabel->setText(name);
 }

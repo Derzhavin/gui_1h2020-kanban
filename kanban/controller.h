@@ -13,6 +13,7 @@
 #include "ui_boardselectiondialog.h"
 #include "ui_createprojectdialog.h"
 
+#include <functional>
 #include <QGuiApplication>
 #include <QScreen>
 #include <QObject>
@@ -28,6 +29,8 @@ public:
     void run();
     void centerWidget(QWidget *widget);
 
+    void openColumnNameInputDialog(std::function<void(QString& columName)> callback);
+
 public slots:
     void openBoard();
     void createBoard();
@@ -36,6 +39,8 @@ public slots:
 
     void addColumn();
     void removeColumn(ColumnWidget *columnWidget);
+    void renameColumn(ColumnWidget *columnWidget);
+
     void addTask(ColumnWidget *columnWidget);
 
 private:

@@ -39,3 +39,8 @@ void ProjectWindow::removeColumnPushButtonClick()
     emit removeColumn(qobject_cast<ColumnWidget*>(sender()->parent()));
 }
 
+void ProjectWindow::renameColumnPushButtonClick()
+{
+    emit renameColumn(qobject_cast<ColumnWidget*>(sender()->parent()));
+}
+

@@ -21,6 +21,8 @@ public:
     ColumnWidget(QString columnName, QWidget *parent = nullptr);
     ~ColumnWidget();
 
+    void setColumnName(QString name);
+
     QPushButton *addTaskPushButton;
     QPushButton *removeColumnPushButton;
     QPushButton *renameColumnPushButton;

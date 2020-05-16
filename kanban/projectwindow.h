@@ -26,13 +26,16 @@ public:
 
 public slots:
     void goToBoardsPushButtonClick();
+
     void addColumnToolButtonClick();
     void removeColumnPushButtonClick();
+    void renameColumnPushButtonClick();
 
 signals:
     void reviewBoards();
     void addColumn();
     void removeColumn(ColumnWidget *columnWidget);
+    void renameColumn(ColumnWidget *columnWidget);
 
 private:
     Ui::MainWindow *ui;
