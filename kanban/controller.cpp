@@ -17,6 +17,7 @@ Controller::Controller()
     QObject::connect(&projectWindow, SIGNAL(addColumn()), this, SLOT(addColumn()));
     QObject::connect(&projectWindow, SIGNAL(removeColumn(ColumnWidget*)), this, SLOT(removeColumn(ColumnWidget*)));
     QObject::connect(&projectWindow, SIGNAL(renameColumn(ColumnWidget*)), this, SLOT(renameColumn(ColumnWidget*)));
+    QObject::connect(&projectWindow, SIGNAL(addTask(ColumnWidget*)), this, SLOT(addTask(ColumnWidget*)));
 }
 
 void Controller::run()
@@ -31,7 +32,7 @@ void Controller::centerWidget(QWidget *widget)
     widget->setGeometry(r);
 }
 
-void Controller::openColumnNameInputDialog(std::function<void(QString& columName)> callback)
+void Controller::openColumnNameInputDialog(std::function<void(QString&)> callback)
 {
     QString title = projectWindow.windowTitle();
     QString columnName = "";
@@ -52,6 +53,15 @@ void Controller::openColumnNameInputDialog(std::function<void(QString& columName
             QMessageBox::information(&createProjectDialog,  title, msg);
         }
     }
+}
+
+void Controller::openTaskInputDialog(std::function<void(QString&, QString&)> callback)
+{
+    taskInputdialog.exec();
+    QString description = taskInputdialog.ui->descriptionTextEdit->toPlainText();
+    QString deadline = taskInputdialog.ui->deadlineDateTimeEdit->text();
+    qDebug() << deadline;
+    callback()
 }
 
 void Controller::openBoard()
@@ -131,5 +141,7 @@ void Controller::renameColumn(ColumnWidget *columnWidget)
 
 void Controller::addTask(ColumnWidget *columnWidget)
 {
+    openTaskInputDialog([&](QString task) {
 
+    });
 }

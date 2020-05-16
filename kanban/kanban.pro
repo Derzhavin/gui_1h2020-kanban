@@ -28,6 +28,7 @@ SOURCES += \
     projectwindow.cpp \
     schemacreatequery.cpp \
     sqltablemodelextension.cpp \
+    taskinputdialog.cpp \
     taskmanager.cpp
 
 HEADERS += \
@@ -44,13 +45,15 @@ HEADERS += \
     schemacreatequery.h \
     singleton.h \
     sqltablemodelextension.h \
+    taskinputdialog.h \
     taskmanager.h
 
 FORMS += \
     boardselectiondialog.ui \
     createprojectdialog.ui \
     projectreviewdialog.ui \
-    projectwindow.ui
+    projectwindow.ui \
+    taskinputdialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

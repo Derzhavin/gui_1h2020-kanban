@@ -7,11 +7,13 @@
 #include "projectreviewdialog.h"
 #include "createprojectdialog.h"
 #include "boardselectiondialog.h"
+#include "taskinputdialog.h"
 
 #include "ui_projectreviewdialog.h"
 #include "ui_projectwindow.h"
 #include "ui_boardselectiondialog.h"
 #include "ui_createprojectdialog.h"
+#include "ui_taskinputdialog.h"
 
 #include <functional>
 #include <QGuiApplication>
@@ -30,6 +32,7 @@ public:
     void centerWidget(QWidget *widget);
 
     void openColumnNameInputDialog(std::function<void(QString& columName)> callback);
+    void openTaskInputDialog(std::function<void(QString& columName)> callback);
 
 public slots:
     void openBoard();
@@ -48,6 +51,7 @@ private:
     ProjectReviewDialog projectReviewDialog;
     CreateProjectDialog createProjectDialog;
     BoardSelectionDialog boardSelectDialog;
+    TaskInputDialog taskInputdialog;
 
     TaskManager taskManager;
 //    BoardModel model;

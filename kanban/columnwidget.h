@@ -12,6 +12,7 @@
 #include <QPushButton>
 #include <QString>
 #include <QObject>
+#include <QStringListModel>
 
 class ColumnWidget: public QWidget
 {
@@ -19,9 +20,9 @@ class ColumnWidget: public QWidget
 
 public:
     ColumnWidget(QString columnName, QWidget *parent = nullptr);
-    ~ColumnWidget();
 
     void setColumnName(QString name);
+    void pushFrontTask(QString& description, QString& datetimeCreated, QString& deadline);
 
     QPushButton *addTaskPushButton;
     QPushButton *removeColumnPushButton;
@@ -30,6 +31,7 @@ public:
     QListView *tasksListView;
 
     QString columnName;
+    QStringListModel *taskListModel;
 };
 
 #endif // COLUMN_H
