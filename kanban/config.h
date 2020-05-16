@@ -6,4 +6,6 @@
 #define DB_DEFAULT_PATH "kanban.sdb"
 #define DB_FAIL_MSG "Application failed. Сontact developers to troubleshoot."
 
+//ColumnWidget
+#define COLUMN_WIDGET_WIDTH 300
 #endif // CONFIG_H

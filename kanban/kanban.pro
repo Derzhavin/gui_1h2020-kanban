@@ -18,6 +18,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     animationmanager.cpp \
     boardselectiondialog.cpp \
+    boardwidget.cpp \
+    columnwidget.cpp \
     controller.cpp \
     createprojectdialog.cpp \
     databasemanager.cpp \
@@ -26,11 +28,14 @@ SOURCES += \
     projectwindow.cpp \
     schemacreatequery.cpp \
     sqltablemodelextension.cpp \
+    taskinputdialog.cpp \
     taskmanager.cpp
 
 HEADERS += \
     animationmanager.h \
     boardselectiondialog.h \
+    boardwidget.h \
+    columnwidget.h \
     config.h \
     controller.h \
     createprojectdialog.h \
@@ -40,13 +45,15 @@ HEADERS += \
     schemacreatequery.h \
     singleton.h \
     sqltablemodelextension.h \
+    taskinputdialog.h \
     taskmanager.h
 
 FORMS += \
     boardselectiondialog.ui \
     createprojectdialog.ui \
     projectreviewdialog.ui \
-    projectwindow.ui
+    projectwindow.ui \
+    taskinputdialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

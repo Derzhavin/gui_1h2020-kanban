@@ -1,4 +1,5 @@
 #include "taskmanager.h"
+#include <QDebug>
 
 TaskManager::TaskManager()
 {
@@ -55,6 +56,24 @@ QList<ColumnInfo> TaskManager::getColumnInfosByBoardName(QString boardName)
     return columnInfos;
 }
 
+QSharedPointer<ColumnInfo> TaskManager::getColumn(QString name)
+{
+    ColumnKey columnKey(currentBoardName, name);
+
+    QSqlRecord record = DatabaseManager::instance().selectColumn(columnKey);
+
+    if (record.value("name").toString().isEmpty()) {
+        return QSharedPointer<ColumnInfo>();
+    }
+
+    ColumnInfo* columnInfo = new ColumnInfo;
+    columnInfo->boardName = record.value("board_name").toString();
+    columnInfo->name = record.value("name").toString();
+    columnInfo->pos = record.value("order_num").toUInt();
+
+    return QSharedPointer<ColumnInfo>(columnInfo);
+}
+
 QList<TaskInfo> TaskManager::getTaskInfosByBoardNameAndColumnName(QString boardName, QString columnName)
 {
     QSqlTableModel model;
@@ -78,10 +97,10 @@ void TaskManager::addBoard(QString name, QString descriprion, QString pathToBack
     DatabaseManager::instance().insertBoard(name, descriprion.isEmpty()? nullptr: &descriprion, pathToBackGround.isEmpty()? nullptr: &pathToBackGround);
 }
 
-void TaskManager::addColumn(QString name, quint8 pos)
+void TaskManager::addColumn(QString name)
 {
     ColumnKey columnKey(currentBoardName, name);
-    DatabaseManager::instance().insertColumn(columnKey, pos);
+    DatabaseManager::instance().insertBackColumn(columnKey);
 }
 
 void TaskManager::addTask(QString columnName, QString description, quint8 &pos, QString deadline)
@@ -104,7 +123,7 @@ void TaskManager::updateColumnPos(QString name, quint8 prevPos, quint8 newPos)
     DatabaseManager::instance().updateColumnPos(columnKey, prevPos, newPos);
 }
 
-void TaskManager::updateColumnName(QString name, QString &newColumnName)
+void TaskManager::renameColumn(QString name, QString &newColumnName)
 {
     ColumnKey columnKey(currentBoardName, name);
     DatabaseManager::instance().updateColumnName(columnKey, newColumnName);

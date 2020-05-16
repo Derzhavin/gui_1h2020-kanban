@@ -120,26 +120,22 @@ QSqlRecord DatabaseManager::selectBoard(QString &boardName)
     return QSqlRecord();
 }
 
-bool DatabaseManager::insertColumn(ColumnKey &columnKey, quint8 &pos)
+bool DatabaseManager::insertBackColumn(ColumnKey &columnKey)
 {
-    QSqlTableModel model;
-    selectColumns(model, columnKey, pos);
-    shrinkModel(model, pos);
+    quint8 maxColumnPos = findMaxColumnPosInBoard(columnKey.first);
+    QSqlQuery query;
+    query.prepare("INSERT INTO column (board_name, name, order_num) VALUES (?, ?, ?)");
+    bindColumnKey(query, columnKey);
+    query.addBindValue(maxColumnPos + 1);
 
-    QSqlRecord record;
-    record.setValue("board_name", columnKey.first);
-    record.setValue("name", columnKey.second);
-    record.setValue("order_num", pos);
-    model.insertRecord(0, record);
-
-    return model.submitAll();
+    return query.exec();
 }
 
 bool DatabaseManager::updateColumnPos(ColumnKey& columnKey, quint8& prevPos, quint8& newPos)
 {
     QSqlTableModel model;
     selectColumns(model, columnKey, prevPos, newPos);
-    shrinkModel(model, prevPos, newPos);
+    shrinkModel(model, prevPos > newPos);
 
     quint8 recorInd = newPos > prevPos ? 0: model.rowCount();
     QSqlRecord record = model.record(recorInd);
@@ -177,46 +173,61 @@ void DatabaseManager::selectColumnsByBoardName(QSqlTableModel &model, QString &b
     model.submitAll();
 }
 
-bool DatabaseManager::insertTask(TaskKey &taskKey, QString &description, quint8& pos, QString *deadline)
+QSqlRecord DatabaseManager::selectColumn(ColumnKey &columnKey)
+{
+    QSqlQuery query;
+    query.prepare("SELECT * FROM column WHERE board_name = ? AND name = ?");
+    bindColumnKey(query, columnKey);
+    if (query.exec()) {
+        query.next();
+        return query.record();
+    }
+    qDebug() << "???????";
+    return QSqlRecord();
+}
+
+quint8 DatabaseManager::findMaxColumnPosInBoard(QString boardName)
+{
+    QSqlQuery query;
+    query.prepare("SELECT MAX(order_num) AS max_order_num FROM column WHERE board_name = ?");
+    query.addBindValue(boardName);
+    if (query.exec()) {
+        query.next();
+        return query.record().value("max_order_num").toUInt();
+    }
+    return 0;
+}
+
+bool DatabaseManager::insertTaskFront(TaskKey &taskKey, QString &description, QString *deadline)
 {
     QSqlTableModel model;
-    selectTasks(model,taskKey, pos);
-    shrinkModel(model, pos);
 
-    QSqlRecord record;
-    record.setValue("board_name", std::get<0>(taskKey));
-    record.setValue("name", std::get<1>(taskKey));
-    record.setValue("datetime_created", std::get<2>(taskKey));
-    record.setValue("description", description);
-    record.setValue("deadline", deadline ? *deadline: nullptr);
-    model.insertRecord(0, record);
-
-    return model.submitAll();
+    shrinkModel()
 }
 
 bool DatabaseManager::moveTaskToOtherColumn(TaskKey& taskKey, QString& newColumnName, quint8& prevPos, quint8& newPos)
 {
-    QSqlRecord record = selectTask(taskKey);
+//    QSqlRecord record = selectTask(taskKey);
 
-    if (deleteTask(taskKey, prevPos)) {
-        taskKey = TaskKey(std::get<0>(taskKey), newColumnName, std::get<2>(taskKey));
-        QString description = record.value("description").toString();
-        QVariant variant = record.value("deadline");
+//    if (deleteTask(taskKey, prevPos)) {
+//        taskKey = TaskKey(std::get<0>(taskKey), newColumnName, std::get<2>(taskKey));
+//        QString description = record.value("description").toString();
+//        QVariant variant = record.value("deadline");
 
-        if (variant.isValid()) {
-            QString description = variant.toString();
-            return insertTask(taskKey, description, newPos, &description);
-        }
+//        if (variant.isValid()) {
+//            QString description = variant.toString();
+//            return insertTaskFront(taskKey, description, newPos, &description);
+//        }
 
-        return insertTask(taskKey, description, newPos, nullptr);
-    }
+//        return insertTaskFront(taskKey, description, newPos, nullptr);
+//    }
     return false;
 }
 bool DatabaseManager::updateTaskPosInColumn(TaskKey& taskKey, quint8& prevPos, quint8& newPos)
 {
     QSqlTableModel model;
     selectTasks(model, taskKey, prevPos, newPos);
-    shrinkModel(model, prevPos, newPos);
+    shrinkModel(model, prevPos > newPos);
 
     quint8 recorInd = newPos > prevPos ? 0: model.rowCount();
     QSqlRecord record = model.record(recorInd);
@@ -250,6 +261,18 @@ void DatabaseManager::selectTasksByBoardNameAndColumnName(QSqlTableModel &model,
     model.setFilter("board_name = " + boardName + " AND column_name = " + columnName);
     model.select();
     model.submitAll();
+}
+
+quint8 DatabaseManager::findMaxTaskPosInColumn(ColumnKey& columnKey)
+{
+    QSqlQuery query;
+    query.prepare("SELECT MAX(order_num) AS max_order_num FROM column WHERE board_name = ? AND name = ?");
+    bindColumnKey(query, columnKey);
+    if (query.exec()) {
+        query.next();
+        return query.record().value("max_order_num").toUInt();
+    }
+    return 0;
 }
 
 QSqlRecord DatabaseManager::selectTask(TaskKey &taskKey)
@@ -286,10 +309,9 @@ void DatabaseManager::selectTasks(QSqlTableModel &model, TaskKey& taskKey, quint
 
     model.setTable("task");
     model.setSort(model.fieldIndex("order_num"), Qt::AscendingOrder);
-    model.setFilter("board_name = " + std::get<0>(taskKey) +
-                    " AND column_name = " + std::get<1>(taskKey) +
-                    " AND datetime_created = " + std::get<2>(taskKey) +
-                    " order_num BETWEEN " + QString::number(begin) + " AND " + QString::number(end));
+    model.setFilter("board_name = \"" + std::get<0>(taskKey) +
+                    "\" AND column_name = \"" + std::get<1>(taskKey) +
+                    "\" AND (order_num BETWEEN \"" + QString::number(begin) + "\" AND \"" + QString::number(end) + "\")");
     model.select();
 }
 
@@ -301,16 +323,16 @@ void DatabaseManager::selectColumns(QSqlTableModel &model, ColumnKey &columnKey,
 
     model.setTable("column");
     model.setSort(model.fieldIndex("order_num"), Qt::AscendingOrder);
-    model.setFilter("board_name = " + columnKey.first + " AND name = " + columnKey.second +
-                    " order_num BETWEEN " + QString::number(begin) + " AND " + QString::number(end));
+    model.setFilter("board_name = \"" + columnKey.first + "\"" +
+                    " AND (order_num BETWEEN \"" + QString::number(begin) + "\" AND \"" + QString::number(end) +"\")");
     model.select();
 }
 
-void DatabaseManager::shrinkModel(QSqlTableModel &model, quint8 begin, quint8 end)
+void DatabaseManager::shrinkModel(QSqlTableModel &model, bool direction)
 {
     foreachRecord(model, [&](QSqlRecord& record) {
         quint8 pos = record.value("order_num").toUInt();
-        pos += end > begin ? -1: 1;
+        pos += direction ? -1: 1;
         record.setValue("order_num", pos);
     });
 }

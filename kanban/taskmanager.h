@@ -42,9 +42,10 @@ public:
     void removeBoard(QString name);
 
     QList<ColumnInfo> getColumnInfosByBoardName(QString boardName);
-    void addColumn(QString name, quint8 pos);
+    QSharedPointer<ColumnInfo> getColumn(QString name);
+    void addColumn(QString name);
     void updateColumnPos(QString name, quint8 prevPos, quint8 newPos);
-    void updateColumnName(QString name, QString& newColumnName);
+    void renameColumn(QString name, QString& newColumnName);
     void removeColumn(QString name, quint8 &prevPos);
 
     QList<TaskInfo> getTaskInfosByBoardNameAndColumnName(QString boardName, QString columnName);
