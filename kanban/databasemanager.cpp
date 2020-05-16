@@ -120,19 +120,15 @@ QSqlRecord DatabaseManager::selectBoard(QString &boardName)
     return QSqlRecord();
 }
 
-bool DatabaseManager::insertColumn(ColumnKey &columnKey, quint8 &pos)
+bool DatabaseManager::insertBackColumn(ColumnKey &columnKey)
 {
-    QSqlTableModel model;
-    selectColumns(model, columnKey, pos);
-    shrinkModel(model, pos);
+    quint8 maxColumnPos = findMaxColumnPosInBoard(columnKey.first);
+    QSqlQuery query;
+    query.prepare("INSERT INTO column (board_name, name, order_num) VALUES (?, ?, ?)");
+    bindColumnKey(query, columnKey);
+    query.addBindValue(maxColumnPos + 1);
 
-    QSqlRecord record;
-    record.setValue("board_name", columnKey.first);
-    record.setValue("name", columnKey.second);
-    record.setValue("order_num", pos);
-    model.insertRecord(0, record);
-
-    return model.submitAll();
+    return query.exec();
 }
 
 bool DatabaseManager::updateColumnPos(ColumnKey& columnKey, quint8& prevPos, quint8& newPos)
@@ -175,6 +171,31 @@ void DatabaseManager::selectColumnsByBoardName(QSqlTableModel &model, QString &b
     model.setFilter("board_name = " + boardName);
     model.select();
     model.submitAll();
+}
+
+QSqlRecord DatabaseManager::selectColumn(ColumnKey &columnKey)
+{
+    QSqlQuery query;
+    query.prepare("SELECT * FROM column WHERE board_name = ? AND name = ?");
+    bindColumnKey(query, columnKey);
+    if (query.exec()) {
+        query.next();
+        return query.record();
+    }
+    qDebug() << "???????";
+    return QSqlRecord();
+}
+
+quint8 DatabaseManager::findMaxColumnPosInBoard(QString boardName)
+{
+    QSqlQuery query;
+    query.prepare("SELECT MAX(order_num) AS max_order_num FROM column WHERE board_name = ?");
+    query.addBindValue(boardName);
+    if (query.exec()) {
+        query.next();
+        return query.record().value("max_order_num").toUInt();
+    }
+    return 0;
 }
 
 bool DatabaseManager::insertTask(TaskKey &taskKey, QString &description, quint8& pos, QString *deadline)

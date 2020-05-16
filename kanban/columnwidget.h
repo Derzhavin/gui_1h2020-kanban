@@ -1,20 +1,23 @@
 #ifndef COLUMN_H
 #define COLUMN_H
 
+#include "config.h"
+
 #include <QListView>
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QLineEdit>
 #include <QHBoxLayout>
 #include <QPushButton>
+#include <QString>
 
 class ColumnWidget: public QWidget
 {
 public:
-    ColumnWidget(QWidget *parent = nullptr);
+    ColumnWidget(QString columnName, QWidget *parent = nullptr);
 
     QPushButton *addTaskPushButton;
-    QLineEdit *editTaskLineEdit;
+    QLineEdit *editColumnkLineEdit;
     QListView *tasksListView;
 };
 

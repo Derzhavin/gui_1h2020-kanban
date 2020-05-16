@@ -1,13 +1,17 @@
 #include "columnwidget.h"
 
-ColumnWidget::ColumnWidget(QWidget *parent): QWidget(parent)
+ColumnWidget::ColumnWidget(QString columnName, QWidget *parent): QWidget(parent)
 {
-    setLayout(new QVBoxLayout);
+    setMaximumWidth(COLUMN_WIDGET_WIDTH);
+    setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum);
 
-    QHBoxLayout *hBoxLayout = new QHBoxLayout;
     addTaskPushButton = new QPushButton;
-    editTaskLineEdit = new QLineEdit;
-    hBoxLayout->addWidget(editTaskLineEdit);
+    editColumnkLineEdit = new QLineEdit;
+    editColumnkLineEdit->setText(columnName);
+
+    setLayout(new QVBoxLayout);
+    QHBoxLayout *hBoxLayout = new QHBoxLayout;
+    hBoxLayout->addWidget(editColumnkLineEdit);
     hBoxLayout->addWidget(addTaskPushButton);
 
     layout()->addItem(hBoxLayout);

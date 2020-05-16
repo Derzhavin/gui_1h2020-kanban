@@ -88,7 +88,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QToolButton" name="delBoardToolButton">
+         <widget class="QToolButton" name="delColumnToolButton">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
             <horstretch>0</horstretch>
@@ -131,7 +131,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QToolButton" name="newBoardToolButton">
+         <widget class="QToolButton" name="newColumnToolButton">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
             <horstretch>0</horstretch>
@@ -200,7 +200,7 @@
          <property name="widgetResizable">
           <bool>true</bool>
          </property>
-         <widget class="BoardWidget" name="scrollAreaWidgetContents">
+         <widget class="BoardWidget" name="boardWidget">
           <property name="geometry">
            <rect>
             <x>0</x>

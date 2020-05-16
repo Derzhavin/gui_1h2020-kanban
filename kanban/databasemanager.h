@@ -10,6 +10,7 @@
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlTableModel>
 #include <QtSql/QSqlRecord>
+#include <QSqlField>
 #include <QFile>
 #include <QMessageBox>
 #include <QString>
@@ -31,11 +32,13 @@ public:
     void selectBoards(QSqlTableModel& model);
     QSqlRecord selectBoard(QString& boardName);
 
-    bool insertColumn(ColumnKey& columnKey, quint8& pos);
+    bool insertBackColumn(ColumnKey& columnKey);
     bool updateColumnPos(ColumnKey& columnKey, quint8& prevPos, quint8& newPos);
     bool updateColumnName(ColumnKey& columnKey, QString& newColumnName);
     bool deleteColumn(ColumnKey& columnKey, quint8 &prevPos);
     void selectColumnsByBoardName(QSqlTableModel& model, QString& boardName);
+    QSqlRecord selectColumn(ColumnKey& columnKey);
+    quint8 findMaxColumnPosInBoard(QString boardName);
 
     bool insertTask(TaskKey& taskKey, QString& description, quint8& pos, QString* deadline = nullptr);
     bool moveTaskToOtherColumn(TaskKey& taskKey, QString& newColumnName, quint8& prevPos, quint8& newPos);

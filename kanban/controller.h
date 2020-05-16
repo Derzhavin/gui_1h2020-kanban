@@ -17,6 +17,7 @@
 #include <QScreen>
 #include <QObject>
 #include <QMessageBox>
+#include <QInputDialog>
 
 class Controller: public QObject
 {
@@ -30,9 +31,11 @@ public:
 public slots:
     void openBoard();
     void createBoard();
-
     void reviewBoards();
     void openBoardWindow();
+
+    void addColumn();
+    void addTask();
 
 private:
     ProjectWindow projectWindow;

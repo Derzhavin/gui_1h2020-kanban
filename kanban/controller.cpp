@@ -1,4 +1,6 @@
 #include "controller.h"
+#include <QDir>
+#include <QDebug>
 
 Controller::Controller()
 {    
@@ -12,6 +14,8 @@ Controller::Controller()
     QObject::connect(&boardSelectDialog, SIGNAL(openBoardWindow()), this, SLOT(openBoardWindow()));
 
     QObject::connect(&projectWindow, SIGNAL(reviewBoards()), this, SLOT(reviewBoards()));
+    QObject::connect(&projectWindow, SIGNAL(addColumn()), this, SLOT(addColumn()));
+
 }
 
 void Controller::run()
@@ -65,12 +69,43 @@ void Controller::openBoardWindow()
             createProjectDialog.close();
 
             centerWidget(&projectWindow);
-            projectWindow.show([&]() {
+            projectWindow.show();
 
-            });
         } else {
             QString msg =  "The board with this name is exist.";
             QMessageBox::information(&createProjectDialog,  createProjectDialog.windowTitle(), msg);
         }
     }
+}
+
+void Controller::addColumn()
+{
+    QString title = projectWindow.windowTitle();
+    QString columnName = "";
+    bool ok = true;
+
+    while(ok and columnName.isEmpty()) {
+        columnName = QInputDialog::getText(&projectWindow, title, "Enter the column name", QLineEdit::Normal, "", &ok);
+
+        if (ok and !columnName.isEmpty()) {
+            if (!taskManager.getColumn(columnName).data()) {
+                BoardWidget *boardwidget = projectWindow.ui->boardWidget;
+                ColumnWidget *columnWidget = new ColumnWidget(columnName, boardwidget);
+                boardwidget->pushBackColumnWidget(columnWidget);
+
+                taskManager.addColumn(columnName);
+            } else {
+                QString msg =  "The column with this name is exist.";
+                QMessageBox::information(&createProjectDialog,  createProjectDialog.windowTitle(), msg);
+            }
+        } else if (ok and columnName.isEmpty()){
+            QString msg = "Column name must not be empty";
+            QMessageBox::information(&createProjectDialog,  title, msg);
+        }
+    }
+}
+
+void Controller::addTask()
+{
+
 }

@@ -8,6 +8,7 @@ ProjectWindow::ProjectWindow(QWidget *parent)
     ui->setupUi(this);
 
     QObject::connect(ui->goToBoardsPushButton, SIGNAL(clicked()), this, SLOT(goToBoardsPushButtonClick()));
+    QObject::connect(ui->newColumnToolButton, SIGNAL(clicked()), this, SLOT(addColumnToolButtonClick()));
 }
 
 ProjectWindow::~ProjectWindow()
@@ -15,14 +16,19 @@ ProjectWindow::~ProjectWindow()
     delete ui;
 }
 
-void ProjectWindow::show(std::function<void ()> callback)
-{
-    QWidget::show();
-    callback();
-}
+//void ProjectWindow::show(std::function<void ()> callback)
+//{
+//    QWidget::show();
+//    callback();
+//}
 
 void ProjectWindow::goToBoardsPushButtonClick()
 {
     emit reviewBoards();
+}
+
+void ProjectWindow::addColumnToolButtonClick()
+{
+    emit addColumn();
 }
 

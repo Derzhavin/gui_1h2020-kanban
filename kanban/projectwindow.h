@@ -18,13 +18,15 @@ public:
     ProjectWindow(QWidget *parent = nullptr);
     ~ProjectWindow();
 
-    void show(std::function<void()> callback);
+//    void show(std::function<void()> callback);
 
 public slots:
     void goToBoardsPushButtonClick();
+    void addColumnToolButtonClick();
 
 signals:
     void reviewBoards();
+    void addColumn();
 
 private:
     Ui::MainWindow *ui;

@@ -12,3 +12,8 @@ void BoardWidget::pushBackColumnWidget(ColumnWidget *column)
     columns.push_back(column);
     column->show();
 }
+
+quint8 BoardWidget::columnsNum()
+{
+    return columns.length();
+}

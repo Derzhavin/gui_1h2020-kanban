@@ -13,6 +13,7 @@ public:
     BoardWidget(QWidget *parent = nullptr);
 
     void pushBackColumnWidget(ColumnWidget *column);
+    quint8 columnsNum();
 
     QList<ColumnWidget*> columns;
 };
