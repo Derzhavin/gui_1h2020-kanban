@@ -6,7 +6,7 @@
 #include <QListView>
 #include <QWidget>
 #include <QVBoxLayout>
-#include <QLineEdit>
+#include <QLabel>
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QString>
@@ -17,7 +17,9 @@ public:
     ColumnWidget(QString columnName, QWidget *parent = nullptr);
 
     QPushButton *addTaskPushButton;
-    QLineEdit *editColumnkLineEdit;
+    QPushButton *removeColumnPushButton;
+    QPushButton *renameColumnPushButton;
+    QLabel *columnNameLabel;
     QListView *tasksListView;
 };
 

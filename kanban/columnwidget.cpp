@@ -5,17 +5,18 @@ ColumnWidget::ColumnWidget(QString columnName, QWidget *parent): QWidget(parent)
     setMaximumWidth(COLUMN_WIDGET_WIDTH);
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum);
 
-    addTaskPushButton = new QPushButton;
-    editColumnkLineEdit = new QLineEdit;
-    editColumnkLineEdit->setText(columnName);
+    columnNameLabel = new QLabel(columnName, this);
+    removeColumnPushButton = new QPushButton("Remove column", this);
+    renameColumnPushButton = new QPushButton("Rename column", this);
+    addTaskPushButton = new QPushButton("Add Task");
+    tasksListView = new QListView(this);
+
+    columnNameLabel->setAlignment(Qt::AlignCenter);
 
     setLayout(new QVBoxLayout);
-    QHBoxLayout *hBoxLayout = new QHBoxLayout;
-    hBoxLayout->addWidget(editColumnkLineEdit);
-    hBoxLayout->addWidget(addTaskPushButton);
-
-    layout()->addItem(hBoxLayout);
-
-    tasksListView = new QListView(this);
+    layout()->addWidget(columnNameLabel);
+    layout()->addWidget(addTaskPushButton);
+    layout()->addWidget(renameColumnPushButton);
+    layout()->addWidget(removeColumnPushButton);
     layout()->addWidget(tasksListView);
 }
