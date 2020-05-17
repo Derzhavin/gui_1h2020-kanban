@@ -18,6 +18,10 @@ Controller::Controller()
     QObject::connect(&projectWindow, SIGNAL(removeColumn(ColumnWidget*)), this, SLOT(removeColumn(ColumnWidget*)));
     QObject::connect(&projectWindow, SIGNAL(renameColumn(ColumnWidget*)), this, SLOT(renameColumn(ColumnWidget*)));
     QObject::connect(&projectWindow, SIGNAL(addTask(ColumnWidget*)), this, SLOT(addTask(ColumnWidget*)));
+    QObject::connect(&projectWindow,
+                     SIGNAL(taskChosen(ColumnWidget*, QModelIndex&, QPoint&)),
+                     this,
+                     SLOT(taskChosen(ColumnWidget*, QModelIndex&, QPoint&)));
 }
 
 void Controller::run()
@@ -58,9 +62,11 @@ void Controller::openColumnNameInputDialog(std::function<void(QString& columnNam
 void Controller::openTaskInputDialog(std::function<void(QString &description, QString &deadline)> callback)
 {
     taskInputdialog.exec();
-    QString description = taskInputdialog.ui->descriptionTextEdit->toPlainText();
-    QString deadline = taskInputdialog.ui->deadlineDateTimeEdit->text();
-    callback(description, deadline);
+    if (taskInputdialog.result()) {
+        QString description = taskInputdialog.ui->descriptionTextEdit->toPlainText();
+        QString deadline = taskInputdialog.ui->deadlineDateTimeEdit->text();
+        callback(description, deadline);
+    }
 }
 
 void Controller::openBoard()
@@ -145,4 +151,32 @@ void Controller::addTask(ColumnWidget *columnWidget)
         QString datetimeCreated = taskManager.addTask(columnName, description, deadline);
         columnWidget->pushFrontTask(description, datetimeCreated, deadline);
     });
+}
+
+void Controller::taskChosen(ColumnWidget *, QModelIndex &,  QPoint& clickPos)
+{
+    QMenu menu(&projectWindow);
+
+    menu.addAction("Update task");
+    menu.addAction("Remove task");
+
+    QObject::connect(&menu, SIGNAL(triggered(QAction*)), this, SLOT(taskChosen(QAction*)));
+
+    menu.exec(clickPos);
+}
+
+void Controller::taskChosen(QAction *action)
+{
+    if (action) {
+        if (action->text() == "Remove task") {
+//            taskManager.removeTask()
+            qDebug() << "Remove task";
+        }
+        else if (action->text() == "Update task") {
+            openTaskInputDialog([&] (QString &description, QString deadline) {
+
+            });
+            qDebug() << "Update task";
+        }
+    }
 }

@@ -22,8 +22,6 @@ public:
     ProjectWindow(QWidget *parent = nullptr);
     ~ProjectWindow();
 
-//    void show(std::function<void()> callback);
-
 public slots:
     void goToBoardsPushButtonClick();
 
@@ -32,6 +30,7 @@ public slots:
     void renameColumnPushButtonClick();
 
     void addTaskPushButtonClick();
+    void taskChosenClick(ColumnWidget *columnWidget, QModelIndex &index, QPoint& clickPos);
 
 signals:
     void reviewBoards();
@@ -41,7 +40,10 @@ signals:
     void renameColumn(ColumnWidget *columnWidget);
 
     void addTask(ColumnWidget *columnWidget);
+    void taskChosen(ColumnWidget *columnWidget, QModelIndex &index, QPoint& clickPos);
+
 private:
+    QMouseEvent *lastMouseEvent;
     Ui::MainWindow *ui;
 };
 #endif // PROJECTWINDOW_H

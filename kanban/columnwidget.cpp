@@ -10,7 +10,7 @@ ColumnWidget::ColumnWidget(QString columnName, QWidget *parent): QWidget(parent)
     removeColumnPushButton = new QPushButton("Remove column", this);
     renameColumnPushButton = new QPushButton("Rename column", this);
     addTaskPushButton = new QPushButton("Add Task");
-    tasksListView = new QListView(this);
+    tasksListView = new CustomTaskListView(this);
     columnDataModel = new ColumnDataModel(tasksListView);
 
     this->columnName = columnName;
@@ -19,8 +19,12 @@ ColumnWidget::ColumnWidget(QString columnName, QWidget *parent): QWidget(parent)
     QObject::connect(removeColumnPushButton, SIGNAL(clicked()), projectWindow, SLOT(removeColumnPushButtonClick()));
     QObject::connect(renameColumnPushButton, SIGNAL(clicked()), projectWindow, SLOT(renameColumnPushButtonClick()));
     QObject::connect(addTaskPushButton, SIGNAL(clicked()), projectWindow, SLOT(addTaskPushButtonClick()));
+    QObject::connect(this,
+                     SIGNAL(taskChosen(ColumnWidget*, QModelIndex&, QPoint&)),
+                     projectWindow,
+                     SLOT(taskChosenClick(ColumnWidget*, QModelIndex&, QPoint&)));
 
-    QObject::connect(tasksListView, SIGNAL(clicked(QModelIndex)), this, SLOT(taskChosen(QModelIndex)));
+    QObject::connect(tasksListView, SIGNAL(rightClicked(QModelIndex, QPoint)), this, SLOT(taskChosen(QModelIndex, QPoint)));
 
     tasksListView->setDragEnabled(true);
     tasksListView->setAcceptDrops(true);
@@ -47,7 +51,7 @@ void ColumnWidget::pushFrontTask(QString &description, QString &datetimeCreated,
     columnDataModel->addTask(description, datetimeCreated, deadline);
 }
 
-void ColumnWidget::taskChosen(QModelIndex index)
+void ColumnWidget::taskChosen(QModelIndex index, QPoint clickPos)
 {
-
+    emit taskChosen(this, index, clickPos);
 }

@@ -18,12 +18,6 @@ ProjectWindow::~ProjectWindow()
     delete ui;
 }
 
-//void ProjectWindow::show(std::function<void ()> callback)
-//{
-//    QWidget::show();
-//    callback();
-//}
-
 void ProjectWindow::goToBoardsPushButtonClick()
 {
     emit reviewBoards();
@@ -47,5 +41,10 @@ void ProjectWindow::renameColumnPushButtonClick()
 void ProjectWindow::addTaskPushButtonClick()
 {
     emit addTask(qobject_cast<ColumnWidget*>(sender()->parent()));
+}
+
+void ProjectWindow::taskChosenClick(ColumnWidget *columnWidget, QModelIndex &index, QPoint& clickPos)
+{
+    emit taskChosen(columnWidget, index, clickPos);
 }
 

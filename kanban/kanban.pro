@@ -23,6 +23,7 @@ SOURCES += \
     columnwidget.cpp \
     controller.cpp \
     createprojectdialog.cpp \
+    customtasklistview.cpp \
     databasemanager.cpp \
     main.cpp \
     projectreviewdialog.cpp \
@@ -40,6 +41,7 @@ HEADERS += \
     config.h \
     controller.h \
     createprojectdialog.h \
+    customtasklistview.h \
     databasemanager.h \
     projectreviewdialog.h \
     projectwindow.h \

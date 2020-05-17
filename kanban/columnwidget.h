@@ -4,6 +4,7 @@
 #include "config.h"
 #include "projectwindow.h"
 #include "columndatamodel.h"
+#include "customtasklistview.h"
 
 #include <QListView>
 #include <QWidget>
@@ -26,14 +27,17 @@ public:
     void pushFrontTask(QString& description, QString& datetimeCreated, QString& deadline);
 
 public slots:
-    void taskChosen(QModelIndex index);
+    void taskChosen(QModelIndex index, QPoint clickPos);
+
+signals:
+    void taskChosen(ColumnWidget* columnWidget, QModelIndex& index, QPoint& clickPos);
 
 public:
     QPushButton *addTaskPushButton;
     QPushButton *removeColumnPushButton;
     QPushButton *renameColumnPushButton;
     QLabel *columnNameLabel;
-    QListView *tasksListView;
+    CustomTaskListView *tasksListView;
 
     QString columnName;
     ColumnDataModel *columnDataModel;

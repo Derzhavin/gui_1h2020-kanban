@@ -21,6 +21,7 @@
 #include <QObject>
 #include <QMessageBox>
 #include <QInputDialog>
+#include <QMenu>
 
 class Controller: public QObject
 {
@@ -45,6 +46,10 @@ public slots:
     void renameColumn(ColumnWidget *columnWidget);
 
     void addTask(ColumnWidget *columnWidget);
+    void taskChosen(ColumnWidget*, QModelIndex&, QPoint &clickPos);
+
+private slots:
+    void taskChosen(QAction *action);
 
 private:
     ProjectWindow projectWindow;

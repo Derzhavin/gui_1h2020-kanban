@@ -107,7 +107,7 @@ void TaskManager::addColumn(QString name)
 QString TaskManager::addTask(QString columnName, QString description, QString deadline)
 {
     QDateTime datetime = QDateTime::currentDateTime();
-    QString datetimeCreated = datetime.toString("yy-MM-dd hh:mm::ss");
+    QString datetimeCreated = datetime.toString("yy-MM-dd hh:mm:ss");
 
     TaskKey taskKey(currentBoardName, columnName, datetimeCreated);
     DatabaseManager::instance().insertBackTask(taskKey, description, deadline.isEmpty()? nullptr: &deadline);
