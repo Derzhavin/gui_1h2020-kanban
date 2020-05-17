@@ -32,7 +32,8 @@ public:
     QSqlRecord selectBoard(QString& boardName);
 
     bool insertBackColumn(ColumnKey& columnKey);
-    bool updateColumnPos(ColumnKey& columnKey, quint8& newPos);
+    bool insertColumn(ColumnKey& columnKey, quint8 pos);
+    bool updateColumnPosInBoard(ColumnKey& columnKey, quint8& newPos);
     bool updateColumnName(ColumnKey& columnKey, QString& newColumnName);
     bool deleteColumn(ColumnKey& columnKey);
     void selectColumnsByBoardName(QSqlTableModel& model, QString& boardName);
@@ -40,8 +41,9 @@ public:
     quint8 findMaxColumnPosInBoard(QString boardName);
 
     bool insertBackTask(TaskKey& taskKey, QString& description, QString* deadline = nullptr);
-    bool moveTaskToOtherColumn(TaskKey& taskKey, QString& newColumnName, quint8& newPos); // !
+    bool insertTask(TaskKey &taskKey, quint8 pos, QString& description, QString* deadline = nullptr);
     bool updateTaskPosInColumn(TaskKey& taskKey, quint8& newPos);
+    bool moveTaskToOtherColumn(TaskKey& taskKey, QString& newColumnName, quint8& newPos);
     bool updateTaskDescription(TaskKey& taskKey, QString& newDescription);
     bool deleteTask(TaskKey& taskKey);
     QSqlRecord selectTask(TaskKey& taskKey);
@@ -52,6 +54,10 @@ public:
     static void selectFromTable(QSqlTableModel& model,QString tableName, std::function<void()> callback);
 
 private:
+    bool updateColumnPos(ColumnKey& columnKey, quint8& newPos);
+    bool updateTaskPos(TaskKey& taskKey, quint8 pos);
+    bool doTransaction(std::function<bool()> callback);
+
     static void moveRowsByOne(QSqlTableModel& model, bool direction); // true - увеличить, false - уменьшить
     static void bindColumnKey(QSqlQuery& query, ColumnKey& columnKey);
     static void bindTaskKey(QSqlQuery& query, TaskKey& taskKey);

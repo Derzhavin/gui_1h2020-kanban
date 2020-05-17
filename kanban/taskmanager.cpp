@@ -123,7 +123,7 @@ void TaskManager::updateBoard(QString name, QString *newName, QString *newDescri
 void TaskManager::updateColumnPos(QString name, quint8 newPos)
 {
     ColumnKey columnKey(currentBoardName, name);
-    DatabaseManager::instance().updateColumnPos(columnKey, newPos);
+    DatabaseManager::instance().updateColumnPosInBoard(columnKey, newPos);
 }
 
 void TaskManager::renameColumn(QString name, QString &newColumnName)
