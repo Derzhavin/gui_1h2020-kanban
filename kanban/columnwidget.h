@@ -3,6 +3,7 @@
 
 #include "config.h"
 #include "projectwindow.h"
+#include "columndatamodel.h"
 
 #include <QListView>
 #include <QWidget>
@@ -24,6 +25,10 @@ public:
     void setColumnName(QString name);
     void pushFrontTask(QString& description, QString& datetimeCreated, QString& deadline);
 
+public slots:
+    void taskChosen(QModelIndex index);
+
+public:
     QPushButton *addTaskPushButton;
     QPushButton *removeColumnPushButton;
     QPushButton *renameColumnPushButton;
@@ -31,7 +36,7 @@ public:
     QListView *tasksListView;
 
     QString columnName;
-    QStringListModel *taskListModel;
+    ColumnDataModel *columnDataModel;
 };
 
 #endif // COLUMN_H

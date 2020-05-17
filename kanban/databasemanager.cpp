@@ -1,6 +1,5 @@
 #include "databasemanager.h"
 #include "config.h"
-#include <QDebug>
 
 DatabaseManager::DatabaseManager(): Singleton<DatabaseManager>(*this)
 {

@@ -60,7 +60,6 @@ void Controller::openTaskInputDialog(std::function<void(QString &description, QS
     taskInputdialog.exec();
     QString description = taskInputdialog.ui->descriptionTextEdit->toPlainText();
     QString deadline = taskInputdialog.ui->deadlineDateTimeEdit->text();
-    qDebug() << deadline;
     callback(description, deadline);
 }
 
@@ -142,6 +141,8 @@ void Controller::renameColumn(ColumnWidget *columnWidget)
 void Controller::addTask(ColumnWidget *columnWidget)
 {
     openTaskInputDialog([&](QString &description, QString deadline) {
-
+        QString columnName  = columnWidget->columnName;
+        QString datetimeCreated = taskManager.addTask(columnName, description, deadline);
+        columnWidget->pushFrontTask(description, datetimeCreated, deadline);
     });
 }

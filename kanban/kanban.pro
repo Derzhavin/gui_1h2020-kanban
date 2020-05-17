@@ -19,6 +19,7 @@ SOURCES += \
     animationmanager.cpp \
     boardselectiondialog.cpp \
     boardwidget.cpp \
+    columndatamodel.cpp \
     columnwidget.cpp \
     controller.cpp \
     createprojectdialog.cpp \
@@ -34,6 +35,7 @@ HEADERS += \
     animationmanager.h \
     boardselectiondialog.h \
     boardwidget.h \
+    columndatamodel.h \
     columnwidget.h \
     config.h \
     controller.h \

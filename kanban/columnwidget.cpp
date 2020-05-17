@@ -1,5 +1,5 @@
 #include "columnwidget.h"
-
+#include <QDebug>
 
 ColumnWidget::ColumnWidget(QString columnName, QWidget *parent): QWidget(parent)
 {
@@ -11,8 +11,8 @@ ColumnWidget::ColumnWidget(QString columnName, QWidget *parent): QWidget(parent)
     renameColumnPushButton = new QPushButton("Rename column", this);
     addTaskPushButton = new QPushButton("Add Task");
     tasksListView = new QListView(this);
+    columnDataModel = new ColumnDataModel(tasksListView);
 
-    taskListModel = new QStringListModel();
     this->columnName = columnName;
 
     ProjectWindow* projectWindow = qobject_cast<ProjectWindow*>(QWidget::window());
@@ -20,9 +20,11 @@ ColumnWidget::ColumnWidget(QString columnName, QWidget *parent): QWidget(parent)
     QObject::connect(renameColumnPushButton, SIGNAL(clicked()), projectWindow, SLOT(renameColumnPushButtonClick()));
     QObject::connect(addTaskPushButton, SIGNAL(clicked()), projectWindow, SLOT(addTaskPushButtonClick()));
 
+    QObject::connect(tasksListView, SIGNAL(clicked(QModelIndex)), this, SLOT(taskChosen(QModelIndex)));
+
     tasksListView->setDragEnabled(true);
     tasksListView->setAcceptDrops(true);
-    tasksListView->setModel(taskListModel);
+    tasksListView->setModel(columnDataModel);
 
     columnNameLabel->setAlignment(Qt::AlignCenter);
 
@@ -32,19 +34,6 @@ ColumnWidget::ColumnWidget(QString columnName, QWidget *parent): QWidget(parent)
     layout()->addWidget(renameColumnPushButton);
     layout()->addWidget(removeColumnPushButton);
     layout()->addWidget(tasksListView);
-
-//    tasksListView->setDragEnabled(true);
-//    tasksListView->setAcceptDrops(true);
-//    QStringListModel *model = new QStringListModel();
-//    tasksListView->setModel(model);
-//    tasksListView->model()->insertRow(tasksListView->model()->rowCount());
-//    QStringList list;
-//    list << "11111111111111111111";
-//    for(int i = 0; i < 20; i++){
-
-//        list.append("2\n\1\1");
-//    }
-//    model->setStringList(list);
 }
 
 void ColumnWidget::setColumnName(QString name)
@@ -55,9 +44,10 @@ void ColumnWidget::setColumnName(QString name)
 
 void ColumnWidget::pushFrontTask(QString &description, QString &datetimeCreated, QString &deadline)
 {
-    QString task = QString(description + "\n" +
-                           "created at: " + datetimeCreated +
-                           (deadline.isEmpty() ? "": "\ndeadline: " + deadline));
+    columnDataModel->addTask(description, datetimeCreated, deadline);
+}
 
-    taskListModel->stringList().prepend(task);
+void ColumnWidget::taskChosen(QModelIndex index)
+{
+
 }
