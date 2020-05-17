@@ -12,7 +12,7 @@ QList<BoardInfo> TaskManager::getBoardsInfos()
     DatabaseManager::instance().selectBoards(model);
 
     QList<BoardInfo> boardsInfos;
-    foreachRecord(model, [&](QSqlRecord& record){
+    DatabaseManager::foreachRecordInModel(model, [&](QSqlRecord& record){
         BoardInfo boardInfo;
         boardInfo.name = record.value("name").toString();
         boardInfo.pathToBackGround = record.value("pathToBackGround").toString();
@@ -45,7 +45,7 @@ QList<ColumnInfo> TaskManager::getColumnInfosByBoardName(QString boardName)
     DatabaseManager::instance().selectColumnsByBoardName(model, boardName);
 
     QList<ColumnInfo> columnInfos;
-    foreachRecord(model, [&](QSqlRecord& record){
+    DatabaseManager::foreachRecordInModel(model, [&](QSqlRecord& record){
         ColumnInfo columnInfo;
         columnInfo.name = record.value("name").toString();
         columnInfo.boardName = record.value("board_name").toString();
@@ -74,13 +74,14 @@ QSharedPointer<ColumnInfo> TaskManager::getColumn(QString name)
     return QSharedPointer<ColumnInfo>(columnInfo);
 }
 
-QList<TaskInfo> TaskManager::getTaskInfosByBoardNameAndColumnName(QString boardName, QString columnName)
+QList<TaskInfo> TaskManager::getTaskInfosByBoardColumn(QString boardName, QString columnName)
 {
     QSqlTableModel model;
-    DatabaseManager::instance().selectTasksByBoardNameAndColumnName(model, boardName, columnName);
+    ColumnKey columnKey(boardName, columnName);
+    DatabaseManager::instance().selectTasksByColumn(model, columnKey);
 
     QList<TaskInfo> taskInfos;
-    foreachRecord(model, [&](QSqlRecord& record){
+    DatabaseManager::foreachRecordInModel(model, [&](QSqlRecord& record){
         TaskInfo taskInfo;
         taskInfo.datetimeCreated = record.value("datetime_created").toString();
         taskInfo.deadline = record.value("deadline").toString();
@@ -103,13 +104,15 @@ void TaskManager::addColumn(QString name)
     DatabaseManager::instance().insertBackColumn(columnKey);
 }
 
-void TaskManager::addTask(QString columnName, QString description, quint8 &pos, QString deadline)
+QString TaskManager::addTask(QString columnName, QString description, QString deadline)
 {
     QDateTime datetime = QDateTime::currentDateTime();
     QString datetimeCreated = datetime.toString("yy-MM-dd hh:mm::ss");
 
     TaskKey taskKey(currentBoardName, columnName, datetimeCreated);
-    DatabaseManager::instance().insertTask(taskKey, description, pos, deadline.isEmpty()? nullptr: &deadline);
+    DatabaseManager::instance().insertBackTask(taskKey, description, deadline.isEmpty()? nullptr: &deadline);
+
+    return datetimeCreated;
 }
 
 void TaskManager::updateBoard(QString name, QString *newName, QString *newDescription, QString *newPathToBackground)
@@ -117,10 +120,10 @@ void TaskManager::updateBoard(QString name, QString *newName, QString *newDescri
     DatabaseManager::instance().updateBoard(name, newName, newDescription, newPathToBackground);
 }
 
-void TaskManager::updateColumnPos(QString name, quint8 prevPos, quint8 newPos)
+void TaskManager::updateColumnPos(QString name, quint8 newPos)
 {
     ColumnKey columnKey(currentBoardName, name);
-    DatabaseManager::instance().updateColumnPos(columnKey, prevPos, newPos);
+    DatabaseManager::instance().updateColumnPosInBoard(columnKey, newPos);
 }
 
 void TaskManager::renameColumn(QString name, QString &newColumnName)
@@ -135,16 +138,16 @@ void TaskManager::updateTaskDescription(QString columnName, QString datetimeCrea
     DatabaseManager::instance().updateTaskDescription(taskKey, newDescription);
 }
 
-void TaskManager::updateTaskPosInColumn(QString columnName, QString datetimeCreated, quint8 &prevPos, quint8 &newPos)
+void TaskManager::updateTaskPosInColumn(QString columnName, QString datetimeCreated, quint8 &newPos)
 {
     TaskKey taskKey(currentBoardName, columnName, datetimeCreated);
-    DatabaseManager::instance().updateTaskPosInColumn(taskKey, prevPos, newPos);
+    DatabaseManager::instance().updateTaskPosInColumn(taskKey, newPos);
 }
 
-void TaskManager::moveTaskToOtherColumn(QString columnName, QString datetimeCreated, QString &newColumnName, quint8 &prevPos, quint8 &newPos)
+void TaskManager::moveTaskToOtherColumn(QString columnName, QString datetimeCreated, QString &newColumnName, quint8 &newPos)
 {
     TaskKey taskKey(currentBoardName, columnName, datetimeCreated);
-    DatabaseManager::instance().moveTaskToOtherColumn(taskKey, newColumnName, prevPos, newPos);
+    DatabaseManager::instance().moveTaskToOtherColumn(taskKey, newColumnName, newPos);
 }
 
 void TaskManager::removeBoard(QString name)
@@ -152,15 +155,15 @@ void TaskManager::removeBoard(QString name)
     DatabaseManager::instance().deleteBoard(name);
 }
 
-void TaskManager::removeColumn(QString name, quint8 &prevPos)
+void TaskManager::removeColumn(QString name)
 {
     ColumnKey columnKey(currentBoardName, name);
-    DatabaseManager::instance().deleteColumn(columnKey, prevPos);
+    DatabaseManager::instance().deleteColumn(columnKey);
 }
 
-void TaskManager::removeTask(QString columnName, QString datetimeCreated, quint8 prevPos)
+void TaskManager::removeTask(QString columnName, QString datetimeCreated)
 {
     TaskKey taskKey(currentBoardName, columnName, datetimeCreated);
-    DatabaseManager::instance().deleteTask(taskKey, prevPos);
+    DatabaseManager::instance().deleteTask(taskKey);
 }
 

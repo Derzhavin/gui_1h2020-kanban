@@ -4,7 +4,6 @@
 
 #include "singleton.h"
 #include "schemacreatequery.h"
-#include "sqltablemodelextension.h"
 #include "taskmanager.h"
 
 #include <QtSql/QSqlQuery>
@@ -33,29 +32,36 @@ public:
     QSqlRecord selectBoard(QString& boardName);
 
     bool insertBackColumn(ColumnKey& columnKey);
-    bool updateColumnPos(ColumnKey& columnKey, quint8& prevPos, quint8& newPos);
+    bool insertColumn(ColumnKey& columnKey, quint8 pos);
+    bool updateColumnPosInBoard(ColumnKey& columnKey, quint8& newPos);
     bool updateColumnName(ColumnKey& columnKey, QString& newColumnName);
-    bool deleteColumn(ColumnKey& columnKey, quint8 &prevPos);
+    bool deleteColumn(ColumnKey& columnKey);
     void selectColumnsByBoardName(QSqlTableModel& model, QString& boardName);
     QSqlRecord selectColumn(ColumnKey& columnKey);
     quint8 findMaxColumnPosInBoard(QString boardName);
 
-    bool insertTask(TaskKey& taskKey, QString& description, quint8& pos, QString* deadline = nullptr);
-    bool moveTaskToOtherColumn(TaskKey& taskKey, QString& newColumnName, quint8& prevPos, quint8& newPos);
-    bool updateTaskPosInColumn(TaskKey& taskKey, quint8& prevPos, quint8& newPos);
+    bool insertBackTask(TaskKey& taskKey, QString& description, QString* deadline = nullptr);
+    bool insertTask(TaskKey &taskKey, quint8 pos, QString& description, QString* deadline = nullptr);
+    bool updateTaskPosInColumn(TaskKey& taskKey, quint8& newPos);
+    bool moveTaskToOtherColumn(TaskKey& taskKey, QString& newColumnName, quint8& newPos);
     bool updateTaskDescription(TaskKey& taskKey, QString& newDescription);
-    bool deleteTask(TaskKey& taskKey, quint8 &prevPos);
+    bool deleteTask(TaskKey& taskKey);
     QSqlRecord selectTask(TaskKey& taskKey);
-    void selectTasksByBoardNameAndColumnName(QSqlTableModel& model, QString& boardName, QString& columnName);
+    quint8 findMaxTaskPosInColumn(ColumnKey& columnKey);
+    void selectTasksByColumn(QSqlTableModel &model, ColumnKey &columnKey);
+
+    static void foreachRecordInModel(QSqlTableModel& model, std::function<void(QSqlRecord& record)> callback);
+    static void selectFromTable(QSqlTableModel& model,QString tableName, std::function<void()> callback);
 
 private:
-    void bindColumnKey(QSqlQuery& query, ColumnKey& columnKey);
-    void bindTaskKey(QSqlQuery& query, TaskKey& taskKey);
-    void selectTasks(QSqlTableModel& model, TaskKey &taskKey, quint8 begin, quint8 end = 255);
-    void selectColumns(QSqlTableModel& model, ColumnKey& columnKey, quint8 begin, quint8 end = 255);
-    void shrinkModel(QSqlTableModel& model, quint8 begin, quint8 end = 255);
+    bool updateColumnPos(ColumnKey& columnKey, quint8& newPos);
+    bool updateTaskPos(TaskKey& taskKey, quint8 pos);
+    bool doTransaction(std::function<bool()> callback);
 
-private:
+    static void moveRowsByOne(QSqlTableModel& model, bool direction); // true - увеличить, false - уменьшить
+    static void bindColumnKey(QSqlQuery& query, ColumnKey& columnKey);
+    static void bindTaskKey(QSqlQuery& query, TaskKey& taskKey);
+
     QSqlDatabase database;
 };
 

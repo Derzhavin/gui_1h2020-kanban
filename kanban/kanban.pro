@@ -27,7 +27,6 @@ SOURCES += \
     projectreviewdialog.cpp \
     projectwindow.cpp \
     schemacreatequery.cpp \
-    sqltablemodelextension.cpp \
     taskinputdialog.cpp \
     taskmanager.cpp
 
@@ -44,7 +43,6 @@ HEADERS += \
     projectwindow.h \
     schemacreatequery.h \
     singleton.h \
-    sqltablemodelextension.h \
     taskinputdialog.h \
     taskmanager.h
 

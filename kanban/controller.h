@@ -31,8 +31,8 @@ public:
     void run();
     void centerWidget(QWidget *widget);
 
-    void openColumnNameInputDialog(std::function<void(QString& columName)> callback);
-    void openTaskInputDialog(std::function<void(QString& columName)> callback);
+    void openColumnNameInputDialog(std::function<void(QString& columnName)> callback);
+    void openTaskInputDialog(std::function<void(QString& description, QString& deadline)> callback);
 
 public slots:
     void openBoard();

@@ -32,7 +32,7 @@ void Controller::centerWidget(QWidget *widget)
     widget->setGeometry(r);
 }
 
-void Controller::openColumnNameInputDialog(std::function<void(QString&)> callback)
+void Controller::openColumnNameInputDialog(std::function<void(QString& columnName)> callback)
 {
     QString title = projectWindow.windowTitle();
     QString columnName = "";
@@ -55,13 +55,13 @@ void Controller::openColumnNameInputDialog(std::function<void(QString&)> callbac
     }
 }
 
-void Controller::openTaskInputDialog(std::function<void(QString&, QString&)> callback)
+void Controller::openTaskInputDialog(std::function<void(QString &description, QString &deadline)> callback)
 {
     taskInputdialog.exec();
     QString description = taskInputdialog.ui->descriptionTextEdit->toPlainText();
     QString deadline = taskInputdialog.ui->deadlineDateTimeEdit->text();
     qDebug() << deadline;
-    callback()
+    callback(description, deadline);
 }
 
 void Controller::openBoard()
@@ -127,7 +127,7 @@ void Controller::removeColumn(ColumnWidget *columnWidget)
 {
     BoardWidget *boardWidget = projectWindow.ui->boardWidget;
     quint8 pos = boardWidget->getColumnWidgetPos(columnWidget) + 1;
-    taskManager.removeColumn(columnWidget->columnName, pos);
+    taskManager.removeColumn(columnWidget->columnName);
     boardWidget->removeColumnWidgetAtPos(pos - 1);
 }
 
@@ -141,7 +141,7 @@ void Controller::renameColumn(ColumnWidget *columnWidget)
 
 void Controller::addTask(ColumnWidget *columnWidget)
 {
-    openTaskInputDialog([&](QString task) {
+    openTaskInputDialog([&](QString &description, QString deadline) {
 
     });
 }
