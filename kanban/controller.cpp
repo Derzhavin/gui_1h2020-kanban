@@ -131,9 +131,9 @@ void Controller::addColumn()
 void Controller::removeColumn(ColumnWidget *columnWidget)
 {
     BoardWidget *boardWidget = projectWindow.ui->boardWidget;
-    quint8 pos = boardWidget->getColumnWidgetPos(columnWidget) + 1;
     taskManager.removeColumn(columnWidget->getColumnWidgetName());
-    boardWidget->removeColumnWidgetAtPos(pos - 1);
+    quint8 pos = boardWidget->getColumnWidgetPos(columnWidget);
+    boardWidget->removeColumnWidgetAtPos(pos);
 }
 
 void Controller::renameColumn(ColumnWidget *columnWidget)

@@ -4,6 +4,7 @@
 #include "config.h"
 #include "projectwindow.h"
 #include "customtasklistview.h"
+#include "columndatamodel.h"
 
 #include <QListView>
 #include <QWidget>
@@ -43,7 +44,7 @@ public:
     QLabel *columnNameLabel;
     CustomTaskListView *tasksListView;
 
-    QStringListModel *columnDataModel;
+    ColumnDataModel *columnDataModel;
     QStringList datetimeCreatedList;
     QString columnName;
 };

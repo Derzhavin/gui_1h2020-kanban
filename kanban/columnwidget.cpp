@@ -11,7 +11,7 @@ ColumnWidget::ColumnWidget(QString columnName, QWidget *parent): QWidget(parent)
     renameColumnPushButton = new QPushButton("Rename column", this);
     addTaskPushButton = new QPushButton("Add Task");
     tasksListView = new CustomTaskListView(this);
-    columnDataModel = new QStringListModel(this);
+    columnDataModel = new ColumnDataModel(this);
 
     tasksListView->setModel(columnDataModel);
 

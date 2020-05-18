@@ -4,19 +4,16 @@
 CustomTaskListView::CustomTaskListView(QWidget *parent): QListView(parent)
 {
     setSelectionMode(QAbstractItemView::SingleSelection);
-    setAcceptDrops(true);
     setDragEnabled(true);
-    viewport()->setAcceptDrops(true);
     setDropIndicatorShown(true);
     setDefaultDropAction(Qt::MoveAction);
+    setAcceptDrops(true);
 }
 
 void CustomTaskListView::mousePressEvent(QMouseEvent *event)
 {
-    QModelIndex index = indexAt(event->pos());
-
     if (event->buttons() == Qt::RightButton) {
-
+        QModelIndex index = indexAt(event->pos());
         if (index.isValid()) {
            selectionModel()->select(index, QItemSelectionModel::Select);
            QPoint clickPos = event->globalPos();
