@@ -6,5 +6,6 @@ int main(int argc, char *argv[])
 
     Controller controller;
     controller.run();
+
     return a.exec();
 }

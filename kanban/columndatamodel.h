@@ -14,10 +14,8 @@ class ColumnDataModel : public QAbstractItemModel
 {
    Q_OBJECT
 
-    QStringList taskList;
-
 public:
-    ColumnDataModel(QObject *parent);
+    ColumnDataModel(QString columnName, QObject *parent);
 
     // Model interface implementation
 
@@ -29,7 +27,12 @@ public:
 
 public slots:
     void addTask(QString &description, QString &datetimeCreated, QString &deadline);
-    void removeTask();
+    void removeTask(QString &datetimeCreated);
+
+public:
+    QString columnName;
+    QStringList taskList;
+    QStringList datetimeCreatedList;
 };
 
 #endif // DATAMODEL_H

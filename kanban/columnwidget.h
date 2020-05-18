@@ -25,6 +25,8 @@ public:
 
     void setColumnName(QString name);
     void pushFrontTask(QString& description, QString& datetimeCreated, QString& deadline);
+    void removeTask(QString& datetimeCreated);
+    QString getColumnWidgetName();
 
 public slots:
     void taskChosen(QModelIndex index, QPoint clickPos);
@@ -39,7 +41,6 @@ public:
     QLabel *columnNameLabel;
     CustomTaskListView *tasksListView;
 
-    QString columnName;
     ColumnDataModel *columnDataModel;
 };
 

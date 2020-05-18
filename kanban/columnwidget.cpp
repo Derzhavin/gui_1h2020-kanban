@@ -11,9 +11,7 @@ ColumnWidget::ColumnWidget(QString columnName, QWidget *parent): QWidget(parent)
     renameColumnPushButton = new QPushButton("Rename column", this);
     addTaskPushButton = new QPushButton("Add Task");
     tasksListView = new CustomTaskListView(this);
-    columnDataModel = new ColumnDataModel(tasksListView);
-
-    this->columnName = columnName;
+    columnDataModel = new ColumnDataModel(columnName, tasksListView);
 
     ProjectWindow* projectWindow = qobject_cast<ProjectWindow*>(QWidget::window());
     QObject::connect(removeColumnPushButton, SIGNAL(clicked()), projectWindow, SLOT(removeColumnPushButtonClick()));
@@ -42,13 +40,23 @@ ColumnWidget::ColumnWidget(QString columnName, QWidget *parent): QWidget(parent)
 
 void ColumnWidget::setColumnName(QString name)
 {
-    columnName = name;
+    columnDataModel->columnName = name;
     columnNameLabel->setText(name);
 }
 
 void ColumnWidget::pushFrontTask(QString &description, QString &datetimeCreated, QString &deadline)
 {
     columnDataModel->addTask(description, datetimeCreated, deadline);
+}
+
+void ColumnWidget::removeTask(QString &datetimeCreated)
+{
+    columnDataModel->removeTask(datetimeCreated);
+}
+
+QString ColumnWidget::getColumnWidgetName()
+{
+    return columnDataModel->columnName;
 }
 
 void ColumnWidget::taskChosen(QModelIndex index, QPoint clickPos)

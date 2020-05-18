@@ -15,6 +15,8 @@
 #include "ui_createprojectdialog.h"
 #include "ui_taskinputdialog.h"
 
+#include "custommenu.h"
+
 #include <functional>
 #include <QGuiApplication>
 #include <QScreen>
@@ -47,9 +49,6 @@ public slots:
 
     void addTask(ColumnWidget *columnWidget);
     void taskChosen(ColumnWidget*, QModelIndex&, QPoint &clickPos);
-
-private slots:
-    void taskChosen(QAction *action);
 
 private:
     ProjectWindow projectWindow;

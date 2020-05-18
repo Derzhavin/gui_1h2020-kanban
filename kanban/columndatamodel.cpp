@@ -1,8 +1,8 @@
 #include "columndatamodel.h"
 
-ColumnDataModel::ColumnDataModel(QObject *parent) : QAbstractItemModel(parent)
+ColumnDataModel::ColumnDataModel(QString columnName, QObject *parent) : QAbstractItemModel(parent)
 {
-
+    this->columnName = columnName;
 }
 
 int ColumnDataModel::columnCount(const QModelIndex &) const
@@ -40,13 +40,17 @@ void ColumnDataModel::addTask(QString &description, QString &datetimeCreated, QS
                            "created at: " + datetimeCreated +
                            (deadline.isEmpty() ? "": "\ndeadline: " + deadline));
     taskList.append(value);
+    datetimeCreatedList.append(datetimeCreated);
+
     emit layoutChanged();
 }
 
-void ColumnDataModel::removeTask()
+void ColumnDataModel::removeTask(QString &datetimeCreated)
 {
     if (!taskList.empty()) {
-        taskList.removeLast();
+        quint8 pos = datetimeCreatedList.indexOf(datetimeCreated);
+        taskList.removeAt(pos);
+        datetimeCreatedList.removeAt(pos);
         emit layoutChanged();
     }
 }
