@@ -13,8 +13,6 @@ ColumnWidget::ColumnWidget(QString columnName, QWidget *parent): QWidget(parent)
     tasksListView = new CustomTaskListView(this);
     columnDataModel = new QStringListModel(this);
 
-    tasksListView->setDragEnabled(true);
-    tasksListView->setAcceptDrops(true);
     tasksListView->setModel(columnDataModel);
 
     ProjectWindow* projectWindow = qobject_cast<ProjectWindow*>(QWidget::window());
