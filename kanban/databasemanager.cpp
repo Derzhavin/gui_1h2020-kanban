@@ -316,10 +316,16 @@ bool DatabaseManager::doTransaction(std::function<bool()> callback)
     return callback() ? database.commit() : database.rollback();
 }
 
-bool DatabaseManager::updateTaskDescription(TaskKey& taskKey, QString& newDescription){
+bool DatabaseManager::updateTask(TaskKey& taskKey, QString& newDescription, QString *deadline){
     QSqlQuery query;
-    query.prepare("UPDATE task SET description = ? WHERE board_name = ? AND column_name = ? AND datetime_created = ?");
+    query.prepare("UPDATE task SET description = ?, deadline = ? "
+                  "WHERE board_name = ? "
+                  "AND "
+                  "column_name = ? "
+                  "AND "
+                  "datetime_created = ?");
     query.addBindValue(newDescription);
+    query.addBindValue(deadline ? *deadline: nullptr);
     bindTaskKey(query, taskKey);
 
     return query.exec();

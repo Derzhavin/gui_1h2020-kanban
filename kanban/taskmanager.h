@@ -50,7 +50,7 @@ public:
     QList<TaskInfo> getTaskInfosByBoardColumn(QString boardName, QString columnName);
     QString addTask(QString columnName, QString description, QString deadline = "");
     void updateTaskPosInColumn(QString columnName, QString datetimeCreated, quint8& newPos);
-    void updateTaskDescription(QString columnName, QString datetimeCreated, QString newDescription);
+    void updateTask(QString columnName, QString datetimeCreated, QString newDescription, QString deadline = "");
     void moveTaskToOtherColumn(QString columnName, QString datetimeCreated, QString& newColumnName, quint8& newPos);
     void removeTask(QString columnName, QString datetimeCreated);
 

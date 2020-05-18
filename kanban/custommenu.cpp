@@ -2,7 +2,7 @@
 
 CustomMenu::CustomMenu(QWidget *parent): QMenu(parent)
 {
-
+    QObject::connect(this, SIGNAL(triggered(QAction*)), this, SLOT(chosenAction(QAction*)));
 }
 
 QVariant CustomMenu::getChosenAction()

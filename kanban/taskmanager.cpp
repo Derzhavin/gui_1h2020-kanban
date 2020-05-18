@@ -132,10 +132,10 @@ void TaskManager::renameColumn(QString name, QString &newColumnName)
     DatabaseManager::instance().updateColumnName(columnKey, newColumnName);
 }
 
-void TaskManager::updateTaskDescription(QString columnName, QString datetimeCreated, QString newDescription)
+void TaskManager::updateTask(QString columnName, QString datetimeCreated, QString newDescription, QString deadline)
 {
     TaskKey taskKey(currentBoardName, columnName, datetimeCreated);
-    DatabaseManager::instance().updateTaskDescription(taskKey, newDescription);
+    DatabaseManager::instance().updateTask(taskKey, newDescription, deadline.isEmpty() ? nullptr: &deadline);
 }
 
 void TaskManager::updateTaskPosInColumn(QString columnName, QString datetimeCreated, quint8 &newPos)

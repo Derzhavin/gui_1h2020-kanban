@@ -3,7 +3,6 @@
 
 #include "config.h"
 #include "projectwindow.h"
-#include "columndatamodel.h"
 #include "customtasklistview.h"
 
 #include <QListView>
@@ -24,8 +23,11 @@ public:
     ColumnWidget(QString columnName, QWidget *parent = nullptr);
 
     void setColumnName(QString name);
+    void removeTask(QModelIndex& index);
     void pushFrontTask(QString& description, QString& datetimeCreated, QString& deadline);
-    void removeTask(QString& datetimeCreated);
+    void updateTaskAt(QModelIndex &index, QString &description, QString &deadline);
+    QString getTaskCreatedAt(quint8 pos);
+
     QString getColumnWidgetName();
 
 public slots:
@@ -41,7 +43,9 @@ public:
     QLabel *columnNameLabel;
     CustomTaskListView *tasksListView;
 
-    ColumnDataModel *columnDataModel;
+    QStringListModel *columnDataModel;
+    QStringList datetimeCreatedList;
+    QString columnName;
 };
 
 #endif // COLUMN_H

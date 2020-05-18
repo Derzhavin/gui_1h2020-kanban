@@ -2,7 +2,6 @@
 #define CUSTOMMENU_H
 
 #include <QMenu>
-#include <QString>
 #include <QVariant>
 
 class CustomMenu: public QMenu

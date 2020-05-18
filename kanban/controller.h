@@ -48,7 +48,7 @@ public slots:
     void renameColumn(ColumnWidget *columnWidget);
 
     void addTask(ColumnWidget *columnWidget);
-    void taskChosen(ColumnWidget*, QModelIndex&, QPoint &clickPos);
+    void taskChosen(ColumnWidget* columnWidget, QModelIndex& index, QPoint &clickPos);
 
 private:
     ProjectWindow projectWindow;

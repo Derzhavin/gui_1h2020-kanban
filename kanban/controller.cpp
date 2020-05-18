@@ -153,14 +153,12 @@ void Controller::addTask(ColumnWidget *columnWidget)
     });
 }
 
-void Controller::taskChosen(ColumnWidget *, QModelIndex &,  QPoint& clickPos)
+void Controller::taskChosen(ColumnWidget *columnWidget, QModelIndex &index,  QPoint& clickPos)
 {
     CustomMenu menu(&projectWindow);
 
     menu.addAction("Update task");
     menu.addAction("Remove task");
-
-    QObject::connect(&menu, SIGNAL(triggered(QAction*)), &menu, SLOT(chosenAction(QAction*)));
 
     menu.exec(clickPos);
 
@@ -168,15 +166,18 @@ void Controller::taskChosen(ColumnWidget *, QModelIndex &,  QPoint& clickPos)
 
     if (variant.isValid()) {
         QString choice = variant.toString();
+        QString datetimeCreated = columnWidget->getTaskCreatedAt(index.row());
+        QString columnName = columnWidget->getColumnWidgetName();
 
         if (choice == "Remove task") {
-            qDebug() << "Remove task";
+            taskManager.removeTask(columnName, datetimeCreated);
+            columnWidget->removeTask(index);
         }
         else if (choice == "Update task") {
-            openTaskInputDialog([&] (QString &description, QString deadline) {
-
+            openTaskInputDialog([&] (QString &description, QString& deadline) {
+                taskManager.updateTask(columnName, datetimeCreated, description, deadline);
+                columnWidget->updateTaskAt(index, description, deadline);
             });
-            qDebug() << "Update task";
         }
     }
 }

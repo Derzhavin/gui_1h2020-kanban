@@ -44,7 +44,7 @@ public:
     bool insertTask(TaskKey &taskKey, quint8 pos, QString& description, QString* deadline = nullptr);
     bool updateTaskPosInColumn(TaskKey& taskKey, quint8& newPos);
     bool moveTaskToOtherColumn(TaskKey& taskKey, QString& newColumnName, quint8& newPos);
-    bool updateTaskDescription(TaskKey& taskKey, QString& newDescription);
+    bool updateTask(TaskKey& taskKey, QString& newDescription, QString *deadline = nullptr);
     bool deleteTask(TaskKey& taskKey);
     QSqlRecord selectTask(TaskKey& taskKey);
     quint8 findMaxTaskPosInColumn(ColumnKey& columnKey);
