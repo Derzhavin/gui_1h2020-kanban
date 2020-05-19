@@ -388,10 +388,9 @@ DatabaseManager::OpStatus DatabaseManager::doTransaction(std::function<OpStatus(
     }
 
     if (!isTransaction) {
+        database.rollback();
         isTransaction = false;
     }
-
-    database.rollback();
 
     return opStatus;
 }
