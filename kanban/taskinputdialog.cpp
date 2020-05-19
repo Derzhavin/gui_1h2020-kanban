@@ -6,6 +6,8 @@ TaskInputDialog::TaskInputDialog(QWidget *parent) :
     ui(new Ui::TaskInputDialog)
 {
     ui->setupUi(this);
+
+    QObject::connect(ui->deadlineCheckBox, SIGNAL(stateChanged(int)), this, SLOT(on_checkBox_stateChanged(int)));
 }
 
 TaskInputDialog::~TaskInputDialog()

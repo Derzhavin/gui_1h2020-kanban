@@ -31,6 +31,8 @@ public slots:
 
     void addTaskPushButtonClick();
     void taskChosenClick(ColumnWidget *columnWidget, QModelIndex &index, QPoint& clickPos);
+    void taskDraggedClick(ColumnWidget* columnWidget, QModelIndex& index);
+    bool taskIsDroppingClick(ColumnWidget* columnWidget, QModelIndex& index);
 
 signals:
     void reviewBoards();
@@ -41,6 +43,8 @@ signals:
 
     void addTask(ColumnWidget *columnWidget);
     void taskChosen(ColumnWidget *columnWidget, QModelIndex &index, QPoint& clickPos);
+    void taskDragged(ColumnWidget* columnWidget, QModelIndex& index);
+    bool taskIsDropping(ColumnWidget* columnWidget, QModelIndex& index);
 
 private:
     QMouseEvent *lastMouseEvent;

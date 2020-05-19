@@ -27,15 +27,9 @@ public:
     void removeTask(QModelIndex& index);
     void pushFrontTask(QString& description, QString& datetimeCreated, QString& deadline);
     void updateTaskAt(QModelIndex &index, QString &description, QString &deadline);
-    QString getTaskCreatedAt(quint8 pos);
+    QString getTaskCreatedAt(TaskUIntT pos);
 
     QString getColumnWidgetName();
-
-public slots:
-    void taskChosen(QModelIndex index, QPoint clickPos);
-
-signals:
-    void taskChosen(ColumnWidget* columnWidget, QModelIndex& index, QPoint& clickPos);
 
 public:
     QPushButton *addTaskPushButton;

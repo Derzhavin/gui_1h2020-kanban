@@ -1,5 +1,4 @@
 #include "controller.h"
-#include "columnwidget.h"
 
 int main(int argc, char *argv[])
 {

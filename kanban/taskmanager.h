@@ -1,6 +1,7 @@
 #ifndef TASKMANAGER_H
 #define TASKMANAGER_H
 
+#include "config.h"
 #include "databasemanager.h"
 
 #include <QList>
@@ -19,40 +20,46 @@ struct BoardInfo {
 struct ColumnInfo {
     QString name;
     QString boardName;
-    quint8 pos;
+    ColumnUIntT pos;
 };
 
 struct TaskInfo {
     QString datetimeCreated;
     QString description;
     QString deadline;
-    quint8 pos;
+    TaskUIntT pos;
 };
+
+using SharedPtrBoardInfoList = QSharedPointer<QList<BoardInfo>>;
+using SharedPtrColumnInfoList = QSharedPointer<QList<ColumnInfo>>;
+using SharedPtrTaskInfoList = QSharedPointer<QList<TaskInfo>>;
 
 class TaskManager
 {
 public:
+    using OpStatus = DatabaseManager::OpStatus;
+
     TaskManager();
 
-    QList<BoardInfo> getBoardsInfos();
+    SharedPtrBoardInfoList getBoardsInfos();
     QSharedPointer<BoardInfo> getBoard(QString name);
-    void addBoard(QString name, QString descriprion = "", QString pathToBackGround = "");
-    void updateBoard(QString name, QString* newName, QString* newDescription = nullptr, QString* newPathToBackground = nullptr);
+    OpStatus addBoard(QString name, QString descriprion = "", QString pathToBackGround = "");
+    OpStatus updateBoard(QString name, QString* newName, QString* newDescription = nullptr, QString* newPathToBackground = nullptr);
     void removeBoard(QString name);
 
-    QList<ColumnInfo> getColumnInfosByBoardName(QString boardName);
+    SharedPtrColumnInfoList getColumnInfosByBoardName(QString boardName);
     QSharedPointer<ColumnInfo> getColumn(QString name);
-    void addColumn(QString name);
-    void updateColumnPos(QString name, quint8 newPos);
-    void renameColumn(QString name, QString& newColumnName);
-    void removeColumn(QString name);
+    OpStatus addColumn(QString name);
+    OpStatus updateColumnPos(QString name, ColumnUIntT newPos);
+    OpStatus renameColumn(QString name, QString& newColumnName);
+    OpStatus removeColumn(QString name);
 
-    QList<TaskInfo> getTaskInfosByBoardColumn(QString boardName, QString columnName);
-    QString addTask(QString columnName, QString description, QString deadline = "");
-    void updateTaskPosInColumn(QString columnName, QString datetimeCreated, quint8& newPos);
-    void updateTask(QString columnName, QString datetimeCreated, QString newDescription, QString deadline = "");
-    void moveTaskToOtherColumn(QString columnName, QString datetimeCreated, QString& newColumnName, quint8& newPos);
-    void removeTask(QString columnName, QString datetimeCreated);
+    SharedPtrTaskInfoList getTaskInfosByBoardColumn(QString boardName, QString columnName);
+    OpStatus addTask(QString columnName, QString& datetimeCreated, QString description, QString deadline = "");
+    OpStatus updateTaskPosInColumn(QString columnName, QString datetimeCreated, TaskUIntT& newPos);
+    OpStatus updateTask(QString columnName, QString datetimeCreated, QString newDescription, QString deadline = "");
+    OpStatus moveTaskToOtherColumn(QString columnName, QString datetimeCreated, QString& newColumnName, TaskUIntT& newPos);
+    OpStatus removeTask(QString columnName, QString datetimeCreated);
 
     QString currentBoardName;
 };

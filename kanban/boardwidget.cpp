@@ -13,19 +13,19 @@ void BoardWidget::pushBackColumnWidget(ColumnWidget *column)
     column->show();
 }
 
-void BoardWidget::removeColumnWidgetAtPos(quint8 pos)
+void BoardWidget::removeColumnWidgetAtPos(ColumnUIntT pos)
 {
     ColumnWidget *columnWidget = columnWidgets.at(pos);
     columnWidgets.removeAt(pos);
     delete columnWidget;
 }
 
-quint8 BoardWidget::getColumnWidgetPos(ColumnWidget *columnWidget)
+ColumnUIntT BoardWidget::getColumnWidgetPos(ColumnWidget *columnWidget)
 {
     return columnWidgets.indexOf(columnWidget);
 }
 
-quint8 BoardWidget::columnsNum()
+ColumnUIntT BoardWidget::columnsNum()
 {
     return columnWidgets.length();
 }

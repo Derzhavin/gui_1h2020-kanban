@@ -1,7 +1,7 @@
 #include "columnwidget.h"
 #include <QDebug>
 
-ColumnWidget::ColumnWidget(QString columnName, QWidget *parent): QWidget(parent)
+ColumnWidget::ColumnWidget(QString columnName, QWidget *parent): QWidget(parent), columnName(columnName)
 {
     setMaximumWidth(COLUMN_WIDGET_WIDTH);
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum);
@@ -19,12 +19,18 @@ ColumnWidget::ColumnWidget(QString columnName, QWidget *parent): QWidget(parent)
     QObject::connect(removeColumnPushButton, SIGNAL(clicked()), projectWindow, SLOT(removeColumnPushButtonClick()));
     QObject::connect(renameColumnPushButton, SIGNAL(clicked()), projectWindow, SLOT(renameColumnPushButtonClick()));
     QObject::connect(addTaskPushButton, SIGNAL(clicked()), projectWindow, SLOT(addTaskPushButtonClick()));
-    QObject::connect(this,
+    QObject::connect(tasksListView,
                      SIGNAL(taskChosen(ColumnWidget*, QModelIndex&, QPoint&)),
                      projectWindow,
                      SLOT(taskChosenClick(ColumnWidget*, QModelIndex&, QPoint&)));
-
-    QObject::connect(tasksListView, SIGNAL(rightClicked(QModelIndex, QPoint)), this, SLOT(taskChosen(QModelIndex, QPoint)));
+    QObject::connect(tasksListView,
+                     SIGNAL(taskDragged(ColumnWidget*, QModelIndex&)),
+                     projectWindow,
+                     SLOT(taskDraggedClick(ColumnWidget*, QModelIndex&)));
+    QObject::connect(tasksListView,
+                     SIGNAL(taskIsDropping(ColumnWidget*, QModelIndex&)),
+                     projectWindow,
+                     SLOT(taskIsDroppingClick(ColumnWidget*, QModelIndex&)));
 
     columnNameLabel->setAlignment(Qt::AlignCenter);
 
@@ -71,7 +77,7 @@ void ColumnWidget::updateTaskAt(QModelIndex& index, QString &description, QStrin
     columnDataModel->setData(index, value);
 }
 
-QString ColumnWidget::getTaskCreatedAt(quint8 pos)
+QString ColumnWidget::getTaskCreatedAt(TaskUIntT pos)
 {
     return datetimeCreatedList.at(pos);
 }
@@ -79,9 +85,4 @@ QString ColumnWidget::getTaskCreatedAt(quint8 pos)
 QString ColumnWidget::getColumnWidgetName()
 {
     return columnName;
-}
-
-void ColumnWidget::taskChosen(QModelIndex index, QPoint clickPos)
-{
-    emit taskChosen(this, index, clickPos);
 }

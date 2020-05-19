@@ -2,6 +2,7 @@
 #define TASKINPUTDIALOG_H
 
 #include <QDialog>
+#include <QObject>
 
 namespace Ui {
 class TaskInputDialog;
@@ -16,7 +17,7 @@ public:
     explicit TaskInputDialog(QWidget *parent = nullptr);
     ~TaskInputDialog();
 
-private slots:
+public slots:
     void on_checkBox_stateChanged(int arg1);
 
 private:

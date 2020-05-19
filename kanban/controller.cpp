@@ -1,5 +1,4 @@
 #include "controller.h"
-#include <QDir>
 #include <QDebug>
 
 Controller::Controller()
@@ -22,6 +21,14 @@ Controller::Controller()
                      SIGNAL(taskChosen(ColumnWidget*, QModelIndex&, QPoint&)),
                      this,
                      SLOT(taskChosen(ColumnWidget*, QModelIndex&, QPoint&)));
+    QObject::connect(&projectWindow,
+                     SIGNAL(taskDragged(ColumnWidget*, QModelIndex&)),
+                     this,
+                     SLOT(taskDragged(ColumnWidget*, QModelIndex&)));
+    QObject::connect(&projectWindow,
+                     SIGNAL(taskIsDropping(ColumnWidget*, QModelIndex&)),
+                     this,
+                     SLOT(taskIsDropping(ColumnWidget*, QModelIndex&)));
 }
 
 void Controller::run()
@@ -36,36 +43,49 @@ void Controller::centerWidget(QWidget *widget)
     widget->setGeometry(r);
 }
 
-void Controller::openColumnNameInputDialog(std::function<void(QString& columnName)> callback)
+void Controller::openColumnInputDialog(std::function<bool(QString &)> callback)
 {
     QString title = projectWindow.windowTitle();
     QString columnName = "";
     bool ok = true;
+    bool callbackResult = false;
 
-    while(ok and columnName.isEmpty()) {
-        columnName = QInputDialog::getText(&projectWindow, title, "Enter the column name", QLineEdit::Normal, "", &ok);
+    while((ok and columnName.isEmpty()) and !callbackResult) {
+        columnName = QInputDialog::getText(&projectWindow, title, "Enter the column name.", QLineEdit::Normal, "", &ok);
 
         if (ok and !columnName.isEmpty()) {
             if (!taskManager.getColumn(columnName).data()) {
-                callback(columnName);
+                callbackResult = callback(columnName);
             } else {
                 QString msg =  "The column with this name is exist.";
                 QMessageBox::information(&createProjectDialog,  createProjectDialog.windowTitle(), msg);
             }
-        } else if (ok and columnName.isEmpty()){
-            QString msg = "Column name must not be empty";
+        }
+        else if (ok and columnName.isEmpty()){
+            QString msg = "Column name must not be empty.";
             QMessageBox::information(&createProjectDialog,  title, msg);
         }
     }
 }
 
-void Controller::openTaskInputDialog(std::function<void(QString &description, QString &deadline)> callback)
+void Controller::openTaskInputDialog(std::function<bool(QString &description, QString &deadline)> callback)
 {
-    taskInputdialog.exec();
-    if (taskInputdialog.result()) {
-        QString description = taskInputdialog.ui->descriptionTextEdit->toPlainText();
-        QString deadline = taskInputdialog.ui->deadlineDateTimeEdit->text();
-        callback(description, deadline);
+    bool taskInputDialogResult = false;
+    bool callbackResult = false;
+
+    while(!taskInputDialogResult and !callbackResult) {
+        taskInputDialog.exec();
+        taskInputDialogResult = taskInputDialog.result();
+
+        if (taskInputDialogResult) {
+            QString description = taskInputDialog.ui->descriptionTextEdit->toPlainText();
+            QString deadline = taskInputDialog.ui->deadlineDateTimeEdit->text();
+
+            if (taskInputDialog.ui->deadlineCheckBox->checkState() == Qt::Unchecked) {
+                deadline = "";
+            }
+            callbackResult = callback(description, deadline);
+        }
     }
 }
 
@@ -101,14 +121,32 @@ void Controller::openBoardWindow()
         QString description = createProjectDialog.ui->descriptionTextEdit->toPlainText();
 
         if (!taskManager.getBoard(boardName).data()) {
-            taskManager.addBoard(boardName, description);
-            taskManager.currentBoardName = boardName;
+            QString title = createProjectDialog.windowTitle();
+            QString msg;
 
-            createProjectDialog.clearEdits();
-            createProjectDialog.close();
+            TaskManager::OpStatus status = taskManager.addBoard(boardName, description);
 
-            centerWidget(&projectWindow);
-            projectWindow.show();
+            if (status == TaskManager::OpStatus::LongBoardName) {
+                msg = "Board name is too long. Try again.";
+            }
+            else if (status == TaskManager::OpStatus::LongBoardDescription) {
+                msg = "Board decription is too long. Try again.";
+            }
+            else if (status != TaskManager::OpStatus::Success) {
+                msg = "Failed to add board. Try again.";
+            }
+
+            if (status != TaskManager::OpStatus::Success) {
+                QMessageBox::information(&createProjectDialog,  title, msg);
+            } else {
+                taskManager.currentBoardName = boardName;
+
+                createProjectDialog.clearEdits();
+                createProjectDialog.close();
+
+                centerWidget(&projectWindow);
+                projectWindow.show();
+            }
 
         } else {
             QString msg =  "The board with this name is exist.";
@@ -119,12 +157,32 @@ void Controller::openBoardWindow()
 
 void Controller::addColumn()
 {
-    openColumnNameInputDialog([&](QString &columnName) {
+    QString title = projectWindow.windowTitle();
+    QString msg;
+
+    openColumnInputDialog([&](QString &columnName) {
+        TaskManager::OpStatus status = taskManager.addColumn(columnName);
+
+        if (status == TaskManager::OpStatus::LongColumnName) {
+            msg = "Column name is too long. Try again.";
+        }
+        else if (status == TaskManager::OpStatus::TableFull) {
+            msg = "Board is full of columns. You can't add any columns.";
+        }
+        else if (status != TaskManager::OpStatus::Success){
+            msg = "Failed to add column. Try again.";
+        }
+
+        if (status != TaskManager::OpStatus::Success) {
+            QMessageBox::information(&projectWindow,  title, msg);
+            return false;
+        }
+
         BoardWidget *boardwidget = projectWindow.ui->boardWidget;
         ColumnWidget *columnWidget = new ColumnWidget(columnName, boardwidget);
         boardwidget->pushBackColumnWidget(columnWidget);
 
-        taskManager.addColumn(columnName);
+        return true;
     });
 }
 
@@ -138,18 +196,59 @@ void Controller::removeColumn(ColumnWidget *columnWidget)
 
 void Controller::renameColumn(ColumnWidget *columnWidget)
 {
-    openColumnNameInputDialog([&](QString &newColumnName) {
-       taskManager.renameColumn(columnWidget->getColumnWidgetName(), newColumnName);
+    QString title = projectWindow.windowTitle();
+    QString msg;
+
+    openColumnInputDialog([&](QString &newColumnName) {
+       TaskManager::OpStatus status = taskManager.renameColumn(columnWidget->getColumnWidgetName(), newColumnName);
+
+       if (status == TaskManager::OpStatus::LongColumnName) {
+           msg = "Column name is too long. Try again.";
+       }
+       else if (status != TaskManager::OpStatus::Success){
+           msg = "Failed to rename column. Try again.";
+       }
+
+       if (status != TaskManager::OpStatus::Success){
+            QMessageBox::information(&projectWindow,  title, msg);
+            return false;
+       }
+
        columnWidget->setColumnName(newColumnName);
+
+       return true;
     });
 }
 
 void Controller::addTask(ColumnWidget *columnWidget)
 {
+    QString title = projectWindow.windowTitle();
+    QString msg;
+
     openTaskInputDialog([&](QString &description, QString deadline) {
         QString columnName  = columnWidget->getColumnWidgetName();
-        QString datetimeCreated = taskManager.addTask(columnName, description, deadline);
+        QString datetimeCreated;
+
+        TaskManager::OpStatus status = taskManager.addTask(columnName, datetimeCreated, description, deadline);
+
+        if (status == TaskManager::OpStatus::LongTaskDescription) {
+            msg = "Task description is too long. Try again.";
+        }
+        else if (status == TaskManager::OpStatus::TableFull) {
+            msg = "Column is full of tasks. You can't add tasks.";
+        }
+        else if (status != TaskManager::OpStatus::Success){
+            msg = "Failed to add task. Try again.";
+        }
+
+        if (status != TaskManager::OpStatus::Success){
+             QMessageBox::information(&projectWindow,  title, msg);
+             return false;
+        }
+
         columnWidget->pushFrontTask(description, datetimeCreated, deadline);
+
+        return true;
     });
 }
 
@@ -170,14 +269,83 @@ void Controller::taskChosen(ColumnWidget *columnWidget, QModelIndex &index,  QPo
         QString columnName = columnWidget->getColumnWidgetName();
 
         if (choice == "Remove task") {
-            taskManager.removeTask(columnName, datetimeCreated);
-            columnWidget->removeTask(index);
+            if (taskManager.removeTask(columnName, datetimeCreated) == TaskManager::OpStatus::Success) {
+                columnWidget->removeTask(index);
+            }
+            else {
+                QString title = projectWindow.windowTitle();
+                QString msg = "Failed to remove task. Try again.";
+                QMessageBox::information(&projectWindow,  title, msg);
+            }
         }
         else if (choice == "Update task") {
+            QString title = projectWindow.windowTitle();
+            QString msg;
+
             openTaskInputDialog([&] (QString &description, QString& deadline) {
-                taskManager.updateTask(columnName, datetimeCreated, description, deadline);
+
+                TaskManager::OpStatus status = taskManager.updateTask(columnName, datetimeCreated, description, deadline);
+
+                if (status == TaskManager::OpStatus::LongTaskDescription) {
+                    msg = "Task description is too long. Try again.";
+                }
+                else if (status != TaskManager::OpStatus::Success){
+                    msg = "Failed to rename task. Try again.";
+                }
+
+                if (status != TaskManager::OpStatus::Success){
+                     QMessageBox::information(&projectWindow,  title, msg);
+                     return false;
+                }
+
                 columnWidget->updateTaskAt(index, description, deadline);
+
+                return true;
             });
         }
     }
+}
+
+void Controller::taskDragged(ColumnWidget *columnWidget, QModelIndex &index)
+{
+    unfinishedKeeper.saveDrag(columnWidget, index);
+}
+
+bool Controller::taskIsDropping(ColumnWidget *columnWidget, QModelIndex &index)
+{
+    SavedDrag savedDrag = unfinishedKeeper.getSavedDrag();
+    QString columNameFrom = savedDrag.columnWidget->getColumnWidgetName();
+    QString columnnameTo = columnWidget->getColumnWidgetName();
+    QString datetimeCreated = savedDrag.columnWidget->getTaskCreatedAt(savedDrag.index.row());
+    TaskUIntT newPos = index.row();
+    QString title = projectWindow.windowTitle();
+    QString msg;
+
+    if (columnWidget == savedDrag.columnWidget) {
+        if (taskManager.updateTaskPosInColumn(columNameFrom, datetimeCreated, newPos) == TaskManager::OpStatus::Failure) {
+            msg = "Failed to move task. Try again.";
+            QMessageBox::information(&projectWindow,  title, msg);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    TaskManager::OpStatus status = taskManager.moveTaskToOtherColumn(columNameFrom, datetimeCreated, columnnameTo, newPos);
+
+    if (status == TaskManager::OpStatus::TableFull) {
+        msg = "Column you tried to drop task is full. You can't add task at it.";
+    }
+    else if (status != TaskManager::OpStatus::Success) {
+        msg = "Failed to move task. Try again.";
+    }
+
+    if (status != TaskManager::OpStatus::Success) {
+        QMessageBox::information(&projectWindow,  title, msg);
+
+        return false;
+    }
+
+    return true;
 }

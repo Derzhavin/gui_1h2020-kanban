@@ -16,6 +16,7 @@
 #include "ui_taskinputdialog.h"
 
 #include "custommenu.h"
+#include "unfinishedkeeper.h"
 
 #include <functional>
 #include <QGuiApplication>
@@ -24,6 +25,7 @@
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QMenu>
+#include <QDir>
 
 class Controller: public QObject
 {
@@ -34,8 +36,8 @@ public:
     void run();
     void centerWidget(QWidget *widget);
 
-    void openColumnNameInputDialog(std::function<void(QString& columnName)> callback);
-    void openTaskInputDialog(std::function<void(QString& description, QString& deadline)> callback);
+    void openColumnInputDialog(std::function<bool(QString& columnName)> callback);
+    void openTaskInputDialog(std::function<bool(QString &, QString &)> callback);
 
 public slots:
     void openBoard();
@@ -49,16 +51,18 @@ public slots:
 
     void addTask(ColumnWidget *columnWidget);
     void taskChosen(ColumnWidget* columnWidget, QModelIndex& index, QPoint &clickPos);
+    void taskDragged(ColumnWidget* columnWidget, QModelIndex& index);
+    bool taskIsDropping(ColumnWidget* columnWidget, QModelIndex& index);
 
 private:
     ProjectWindow projectWindow;
     ProjectReviewDialog projectReviewDialog;
     CreateProjectDialog createProjectDialog;
     BoardSelectionDialog boardSelectDialog;
-    TaskInputDialog taskInputdialog;
+    TaskInputDialog taskInputDialog;
 
     TaskManager taskManager;
-//    BoardModel model;
+    UnfinishedKeeper unfinishedKeeper;
 };
 
 #endif // CONTROLLER_H

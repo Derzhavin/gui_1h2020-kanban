@@ -38,7 +38,7 @@
       <widget class="QTextEdit" name="descriptionTextEdit"/>
      </item>
      <item row="0" column="0">
-      <widget class="QCheckBox" name="checkBox">
+      <widget class="QCheckBox" name="deadlineCheckBox">
        <property name="text">
         <string>Deadline</string>
        </property>

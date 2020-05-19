@@ -48,3 +48,13 @@ void ProjectWindow::taskChosenClick(ColumnWidget *columnWidget, QModelIndex &ind
     emit taskChosen(columnWidget, index, clickPos);
 }
 
+void ProjectWindow::taskDraggedClick(ColumnWidget *columnWidget, QModelIndex &index)
+{
+    emit taskDragged(columnWidget, index);
+}
+
+bool ProjectWindow::taskIsDroppingClick(ColumnWidget *columnWidget, QModelIndex &index)
+{
+    return emit taskIsDropping(columnWidget, index);
+}
+

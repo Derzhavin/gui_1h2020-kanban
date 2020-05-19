@@ -2,7 +2,7 @@ QT       += core gui sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-CONFIG += c++17
+CONFIG += c++17 -Wextra -pedantic
 
 # The following define makes your compiler emit warnings if you use
 # any Qt feature that has been marked deprecated (the exact warnings
@@ -31,7 +31,8 @@ SOURCES += \
     projectwindow.cpp \
     schemacreatequery.cpp \
     taskinputdialog.cpp \
-    taskmanager.cpp
+    taskmanager.cpp \
+    unfinishedkeeper.cpp
 
 HEADERS += \
     animationmanager.h \
@@ -50,7 +51,8 @@ HEADERS += \
     schemacreatequery.h \
     singleton.h \
     taskinputdialog.h \
-    taskmanager.h
+    taskmanager.h \
+    unfinishedkeeper.h
 
 FORMS += \
     boardselectiondialog.ui \

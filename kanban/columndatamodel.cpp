@@ -1,7 +1,4 @@
 #include "columndatamodel.h"
-#include <QIODevice>
-#include <QMimeData>
-#include <QDataStream>
 
 ColumnDataModel::ColumnDataModel(QObject *parent): QStringListModel(parent)
 {
