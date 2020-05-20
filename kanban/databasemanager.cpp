@@ -300,41 +300,34 @@ DatabaseManager::OpStatus DatabaseManager::moveTaskToOtherColumn(TaskKey& taskKe
             OpStatus deleteStatus = deleteTask(taskKey);
 
             if (deleteStatus == OpStatus::Success) {
-                ColumnKey newColumnKey(std::get<0>(taskKey), newColumnName);
-                ColumnUIntT maxPosInNewColumn = findMaxTaskPosInColumn(newColumnKey);
+                TaskKey newTaskKey(std::get<0>(taskKey), newColumnName, std::get<2>(taskKey));
 
-                if (!newPos or (newPos + 1 < maxPosInNewColumn)) {
-                    TaskKey newTaskKey(std::get<0>(taskKey), newColumnName, std::get<2>(taskKey));
+                QString description = record.value("description").toString();
+                QVariant variantDeadline = record.value("deadline");
 
-                    QString description = record.value("description").toString();
-                    QVariant variantDeadline = record.value("deadline");
+                OpStatus insertBackTaskStatus = OpStatus::Success;
 
-                    OpStatus insertBackTaskStatus = OpStatus::Success;
+                if (variantDeadline.isValid()) {
+                    QString deadline = variantDeadline.toString();
 
-                    if (variantDeadline.isValid()) {
-                        QString deadline = variantDeadline.toString();
-
-                        if (!newPos) {
-                            return insertBackTask(newTaskKey, description, &deadline);
-                        }
-
-                        insertBackTaskStatus = insertBackTask(newTaskKey, description, &deadline);
-                    } else {
-                        if (!newPos) {
-                            return insertBackTask(newTaskKey, description, nullptr);
-                        }
-
-                        insertBackTaskStatus = insertBackTask(newTaskKey, description, nullptr);
+                    if (!newPos) {
+                        return insertBackTask(newTaskKey, description, &deadline);
                     }
 
-                    if (insertBackTaskStatus == OpStatus::Success) {
-                        return updateTaskPosInColumn(newTaskKey, newPos);
+                    insertBackTaskStatus = insertBackTask(newTaskKey, description, &deadline);
+                } else {
+                    if (!newPos) {
+                        return insertBackTask(newTaskKey, description, nullptr);
                     }
 
-                    return insertBackTaskStatus;
+                    insertBackTaskStatus = insertBackTask(newTaskKey, description, nullptr);
                 }
-                qDebug() << "Aloha, Bro!";
-                return OpStatus::Failure;
+
+                if (insertBackTaskStatus == OpStatus::Success) {
+                    return updateTaskPosInColumn(newTaskKey, newPos);
+                }
+
+                return insertBackTaskStatus;
             }
             return deleteStatus;
         }
