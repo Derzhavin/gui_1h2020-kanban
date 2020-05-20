@@ -4,7 +4,7 @@
 -- Project:       Name of the project
 -- Changed:       2020-05-13 09:13
 -- Created:       2020-05-11 17:37
-PRAGMA foreign_keys = OFF;
+PRAGMA foreign_keys = ON;
 
 -- Schema: kanban
 ATTACH "kanban.sdb" AS "kanban";
