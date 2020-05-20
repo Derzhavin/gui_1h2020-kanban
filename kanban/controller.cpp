@@ -265,7 +265,7 @@ void Controller::taskChosen(ColumnWidget *columnWidget, QModelIndex &index,  QPo
 
     if (variant.isValid()) {
         QString choice = variant.toString();
-        QString datetimeCreated = columnWidget->getTaskCreatedAt(index.row());
+        QString datetimeCreated = columnWidget->getTaskDatetimeCreatedAt(index.row());
         QString columnName = columnWidget->getColumnWidgetName();
 
         if (choice == "Remove task") {
@@ -311,24 +311,27 @@ void Controller::taskDragged(ColumnWidget *columnWidget, QModelIndex &index)
     unfinishedKeeper.saveDrag(columnWidget, index);
 }
 
-bool Controller::taskIsDropping(ColumnWidget *columnWidget, QModelIndex &index)
+bool Controller::taskIsDropping(ColumnWidget *columnWidgetTo, QModelIndex &indexTo)
 {
     SavedDrag savedDrag = unfinishedKeeper.getSavedDrag();
-    QString columNameFrom = savedDrag.columnWidget->getColumnWidgetName();
-    QString columnnameTo = columnWidget->getColumnWidgetName();
-    QString datetimeCreated = savedDrag.columnWidget->getTaskCreatedAt(savedDrag.index.row());
-    TaskUIntT newPos = index.row();
+    QModelIndex indexFrom = savedDrag.index;
+    ColumnWidget *columnWidgetFrom = savedDrag.columnWidget;
+
+    QString columNameFrom = columnWidgetFrom->getColumnWidgetName();
+    QString columnnameTo = columnWidgetTo->getColumnWidgetName();
+    QString datetimeCreated = savedDrag.columnWidget->getTaskDatetimeCreatedAt(indexFrom.row());
+    TaskUIntT newPos = indexTo.row() == -1 ? 0: indexTo.row() + 1;
     QString title = projectWindow.windowTitle();
     QString msg;
 
-    if (columnWidget == savedDrag.columnWidget) {
+    if (columnWidgetTo == columnWidgetFrom) {
         if (taskManager.updateTaskPosInColumn(columNameFrom, datetimeCreated, newPos) == TaskManager::OpStatus::Failure) {
             msg = "Failed to move task. Try again.";
             QMessageBox::information(&projectWindow,  title, msg);
 
             return false;
         }
-
+        columnWidgetTo->updatePosTaskDatetimeCreatedAt(indexFrom.row(), indexTo.row());
         return true;
     }
 
@@ -346,6 +349,8 @@ bool Controller::taskIsDropping(ColumnWidget *columnWidget, QModelIndex &index)
 
         return false;
     }
+    columnWidgetFrom->removeTaskDatetimeCreatedAt(indexFrom.row());
+    columnWidgetTo->addTaskDatetimeCreatedAt(indexTo.row(), datetimeCreated);
 
     return true;
 }

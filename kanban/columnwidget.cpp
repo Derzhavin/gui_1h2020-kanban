@@ -77,9 +77,24 @@ void ColumnWidget::updateTaskAt(QModelIndex& index, QString &description, QStrin
     columnDataModel->setData(index, value);
 }
 
-QString ColumnWidget::getTaskCreatedAt(TaskUIntT pos)
+QString ColumnWidget::getTaskDatetimeCreatedAt(TaskUIntT pos)
 {
     return datetimeCreatedList.at(pos);
+}
+
+void ColumnWidget::removeTaskDatetimeCreatedAt(TaskUIntT pos)
+{
+    datetimeCreatedList.removeAt(pos);
+}
+
+void ColumnWidget::updatePosTaskDatetimeCreatedAt(TaskUIntT posFrom, TaskUIntT posTo)
+{
+    datetimeCreatedList.move(posFrom, posTo);
+}
+
+void ColumnWidget::addTaskDatetimeCreatedAt(TaskUIntT pos, QString datetimeCreated)
+{
+    datetimeCreatedList.insert(pos, datetimeCreated);
 }
 
 QString ColumnWidget::getColumnWidgetName()

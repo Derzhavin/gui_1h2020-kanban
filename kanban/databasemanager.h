@@ -54,7 +54,7 @@ public:
     OpStatus insertBackTask(TaskKey& taskKey, QString& description, QString* deadline = nullptr);
     OpStatus deleteTask(TaskKey& taskKey);
     OpStatus updateTaskPosInColumn(TaskKey& taskKey, TaskUIntT& newPos);
-    OpStatus moveTaskToOtherColumn(TaskKey& taskKey, QString& newColumnName, TaskUIntT& newPos);
+    OpStatus moveTaskToOtherColumn(TaskKey& taskKey, QString& newColumnName, TaskUIntT newPos = 0); // Если 0, то добавить в конец.
     OpStatus updateTask(TaskKey& taskKey, QString& newDescription, QString *deadline = nullptr);
     QSqlRecord selectTask(TaskKey& taskKey);
     TaskUIntT findMaxTaskPosInColumn(ColumnKey& columnKey);

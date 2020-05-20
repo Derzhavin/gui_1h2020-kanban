@@ -27,7 +27,11 @@ public:
     void removeTask(QModelIndex& index);
     void pushFrontTask(QString& description, QString& datetimeCreated, QString& deadline);
     void updateTaskAt(QModelIndex &index, QString &description, QString &deadline);
-    QString getTaskCreatedAt(TaskUIntT pos);
+
+    QString getTaskDatetimeCreatedAt(TaskUIntT pos);
+    void removeTaskDatetimeCreatedAt(TaskUIntT pos);
+    void updatePosTaskDatetimeCreatedAt(TaskUIntT posFrom, TaskUIntT posTo);
+    void addTaskDatetimeCreatedAt(TaskUIntT pos, QString datetimeCreated);
 
     QString getColumnWidgetName();
 

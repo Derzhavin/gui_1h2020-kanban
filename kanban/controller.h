@@ -52,7 +52,7 @@ public slots:
     void addTask(ColumnWidget *columnWidget);
     void taskChosen(ColumnWidget* columnWidget, QModelIndex& index, QPoint &clickPos);
     void taskDragged(ColumnWidget* columnWidget, QModelIndex& index);
-    bool taskIsDropping(ColumnWidget* columnWidget, QModelIndex& index);
+    bool taskIsDropping(ColumnWidget* columnWidgetTo, QModelIndex& indexTo);
 
 private:
     ProjectWindow projectWindow;

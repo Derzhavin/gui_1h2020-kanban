@@ -291,7 +291,7 @@ DatabaseManager::OpStatus DatabaseManager::insertTask(TaskKey &taskKey, TaskUInt
     return query.exec() ? OpStatus::Success : OpStatus::Failure;
 }
 
-DatabaseManager::OpStatus DatabaseManager::moveTaskToOtherColumn(TaskKey& taskKey, QString& newColumnName, TaskUIntT& newPos)
+DatabaseManager::OpStatus DatabaseManager::moveTaskToOtherColumn(TaskKey& taskKey, QString& newColumnName, TaskUIntT newPos)
 {
     return doTransaction([&]() {
         QSqlRecord record = selectTask(taskKey);
@@ -303,7 +303,7 @@ DatabaseManager::OpStatus DatabaseManager::moveTaskToOtherColumn(TaskKey& taskKe
                 ColumnKey newColumnKey(std::get<0>(taskKey), newColumnName);
                 ColumnUIntT maxPosInNewColumn = findMaxTaskPosInColumn(newColumnKey);
 
-                if (newPos < maxPosInNewColumn + 2) {
+                if (!newPos or (newPos + 1 < maxPosInNewColumn)) {
                     TaskKey newTaskKey(std::get<0>(taskKey), newColumnName, std::get<2>(taskKey));
 
                     QString description = record.value("description").toString();
@@ -313,9 +313,18 @@ DatabaseManager::OpStatus DatabaseManager::moveTaskToOtherColumn(TaskKey& taskKe
 
                     if (variantDeadline.isValid()) {
                         QString deadline = variantDeadline.toString();
-                        insertBackTaskStatus = insertBackTask(taskKey, description, &deadline);
+
+                        if (!newPos) {
+                            return insertBackTask(newTaskKey, description, &deadline);
+                        }
+
+                        insertBackTaskStatus = insertBackTask(newTaskKey, description, &deadline);
                     } else {
-                        insertBackTaskStatus = insertBackTask(taskKey, description, nullptr);
+                        if (!newPos) {
+                            return insertBackTask(newTaskKey, description, nullptr);
+                        }
+
+                        insertBackTaskStatus = insertBackTask(newTaskKey, description, nullptr);
                     }
 
                     if (insertBackTaskStatus == OpStatus::Success) {
@@ -324,6 +333,8 @@ DatabaseManager::OpStatus DatabaseManager::moveTaskToOtherColumn(TaskKey& taskKe
 
                     return insertBackTaskStatus;
                 }
+                qDebug() << "Aloha, Bro!";
+                return OpStatus::Failure;
             }
             return deleteStatus;
         }

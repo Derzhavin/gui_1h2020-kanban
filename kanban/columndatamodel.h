@@ -7,6 +7,7 @@ class ColumnDataModel: public QStringListModel
 {
     Q_OBJECT
 public:
+
     ColumnDataModel(QObject *parent = nullptr);
 
     Qt::ItemFlags flags(const QModelIndex &index) const;

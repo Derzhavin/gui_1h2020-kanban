@@ -25,6 +25,7 @@ void CustomTaskListView::mousePressEvent(QMouseEvent *event)
         selectionModel()->select(index, QItemSelectionModel::Deselect);
     }
     else if (event->buttons() == Qt::LeftButton) {
+//        qDebug() << "void CustomTaskListView::mousePressEvent(QMouseEvent *event) 28";
         emit taskDragged(columnWidget, index);
     }
 
@@ -37,6 +38,8 @@ void CustomTaskListView::dropEvent(QDropEvent *event)
     QModelIndex index  =indexAt(event->pos());
 
     if (emit taskIsDropping(columnWidget, index)) {
+        qDebug() << "Drop event!";
+
         QListView::dropEvent(event);
     }
 }
