@@ -18,6 +18,25 @@ struct BoardInfo {
     QString description;
 };
 
+class Cache
+{
+public:
+    Cache() {}
+
+    void cacheBoardInfo(BoardInfo boardInfo) {
+        this->boardInfo = boardInfo;
+    }
+    BoardInfo getCachedBoardInfo() {
+        return boardInfo;
+    }
+    QString getCachedBoardName() {
+        return boardInfo.name;
+    }
+
+private:
+    BoardInfo boardInfo;
+};
+
 struct ColumnInfo {
     QString name;
     QString boardName;
@@ -61,9 +80,9 @@ public:
     QSharedPointer<BoardLoad> loadBoard();
 
     SharedPtrBoardList getBoards();
-    QSharedPointer<BoardInfo> getBoard(QString name);
+    QSharedPointer<BoardInfo> getBoardInfo(QString name = "");
     OpStatus addBoard(QString name, QString descriprion = "", QString pathToBackGround = "");
-    OpStatus updateBoard(QString* newName, QString* newDescription = nullptr, QString* newPathToBackground = nullptr);
+    OpStatus updateBoard(QString newName = "", QString newDescription = "", QString newPathToBackground = "");
     OpStatus removeBoard();
 
     SharedPtrColumnInfoList getColumnInfosByBoardName(QString boardName);
@@ -81,6 +100,7 @@ public:
     OpStatus removeTask(QString columnName, QString datetimeCreated);
 
     QString currentBoardName;
+    Cache cache;
 };
 
 #endif // TASKMANAGER_H

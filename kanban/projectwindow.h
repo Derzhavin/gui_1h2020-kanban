@@ -41,6 +41,7 @@ signals:
     void reviewBoardsClick();
 
     void removeBoardClick();
+    void showBoardDetailsClick();
 
     void taskChosenClick(ColumnWidget*, QModelIndex&, QPoint&);
     void addColumnClick();
@@ -53,6 +54,8 @@ signals:
 
 private slots:
     void on_delBoardToolButton_clicked();
+
+    void on_toolButton_clicked();
 
 private:
     QMouseEvent *lastMouseEvent;

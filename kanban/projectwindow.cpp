@@ -66,3 +66,8 @@ void ProjectWindow::on_delBoardToolButton_clicked()
 {
     emit removeBoardClick();
 }
+
+void ProjectWindow::on_toolButton_clicked()
+{
+    emit showBoardDetailsClick();
+}

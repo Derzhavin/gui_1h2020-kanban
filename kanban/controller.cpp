@@ -1,7 +1,8 @@
 #include "controller.h"
+#include <QDebug>
 
 Controller::Controller()
-{    
+{
     QObject::connect(&projectReviewDialog, SIGNAL(createBoardClick()), this, SLOT(createBoard()));
     QObject::connect(&projectReviewDialog, SIGNAL(openBoardClick()), this, SLOT(openBoard()));
 
@@ -33,6 +34,7 @@ Controller::Controller()
                      SLOT(taskIsDropping(ColumnWidget*, QModelIndex&)));
 
     QObject::connect(&projectWindow, SIGNAL(removeBoardClick()), this, SLOT(removeBoard()));
+    QObject::connect(&projectWindow, SIGNAL(showBoardDetailsClick()), this, SLOT(showBoardDetails()));
 }
 
 void Controller::run()
@@ -130,7 +132,7 @@ void Controller::openBoardWindow()
         QString boardName = createProjectDialog.ui->boardNameLineEdit->text();
         QString description = createProjectDialog.ui->descriptionTextEdit->toPlainText();
 
-        if (!taskManager.getBoard(boardName).data()) {
+        if (!taskManager.getBoardInfo(boardName).data()) {
             QString title = createProjectDialog.windowTitle();
             QString msg;
 
@@ -179,6 +181,59 @@ void Controller::openExistingProjectWindow(QString boardName)
     projectWindow.show();
 }
 
+void Controller::showBoardDetails()
+{
+
+    if (boardDetailsDialog.isEditsClear()) {
+        QSharedPointer<BoardInfo> sharedPtrBoardInfo = taskManager.getBoardInfo();
+
+        boardDetailsDialog.setBoardNameEdit(sharedPtrBoardInfo.data()->name);
+        boardDetailsDialog.setDescriptiinEdit(sharedPtrBoardInfo.data()->description);
+    }
+
+    bool result = false, valid = false;
+    while (!result and !valid) {
+        result = boardDetailsDialog.exec();
+
+        if (result) {
+            QString newBoardName;
+            QString newDescription;
+
+            if (boardDetailsDialog.isBoardnameEditChecked()) {
+                newDescription = boardDetailsDialog.getDescriptionEditText();
+            }
+            if (boardDetailsDialog.isBoardnameEditChecked()) {
+                newBoardName = boardDetailsDialog.getBoardNameEdit();
+            }
+
+            TaskManager::OpStatus status = taskManager.updateBoard(newBoardName, newDescription, "");
+            QString title = createProjectDialog.windowTitle();
+            QString msg;
+
+            if (status == TaskManager::OpStatus::LongBoardName) {
+                msg = "Board name is too long. Try again.";
+            }
+            else if (status == TaskManager::OpStatus::LongBoardDescription) {
+                msg = "Board decription is too long. Try again.";
+            }
+            else if (status != TaskManager::OpStatus::Success) {
+                msg = "Failed to update board details. Try again.";
+            }
+            else if (status == TaskManager::OpStatus::Success) {
+                msg = "The board updated succesfully.";
+            }
+
+            if (status != TaskManager::OpStatus::Success) {
+                QMessageBox::information(&createProjectDialog,  title, msg);
+            } else {
+                QMessageBox::information(&createProjectDialog,  title, msg);
+                valid = true;
+            }
+        }
+    }
+
+}
+
 void Controller::removeBoard()
 {
     QMessageBox::StandardButton reply = QMessageBox::question(&projectWindow,
@@ -191,7 +246,7 @@ void Controller::removeBoard()
             QMessageBox::information(&projectWindow,  projectWindow.windowTitle(), "Failed to remove board. Try again.");
             return;
         }
-
+        boardDetailsDialog.clearEdits();
         projectWindow.close();
         projectReviewDialog.show();
     }

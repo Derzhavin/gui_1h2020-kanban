@@ -8,12 +8,14 @@
 #include "createprojectdialog.h"
 #include "boardselectiondialog.h"
 #include "taskinputdialog.h"
+#include "boarddetailsdialog.h"
 
 #include "ui_projectreviewdialog.h"
 #include "ui_projectwindow.h"
 #include "ui_boardselectiondialog.h"
 #include "ui_createprojectdialog.h"
 #include "ui_taskinputdialog.h"
+#include "ui_boarddetailsdialog.h"
 
 #include "custommenu.h"
 #include "unfinishedkeeper.h"
@@ -46,7 +48,9 @@ public slots:
     void openBoardWindow();
     void openExistingProjectWindow(QString boardName);
 
+    void showBoardDetails();
     void removeBoard();
+
     void addColumn();
     void removeColumn(ColumnWidget *columnWidget);
     void renameColumn(ColumnWidget *columnWidget);
@@ -62,6 +66,7 @@ private:
     CreateProjectDialog createProjectDialog;
     BoardSelectionDialog boardSelectDialog;
     TaskInputDialog taskInputDialog;
+    BoardDetailsDialog boardDetailsDialog;
 
     TaskManager taskManager;
     UnfinishedKeeper unfinishedKeeper;

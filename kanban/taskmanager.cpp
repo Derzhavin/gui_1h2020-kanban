@@ -8,7 +8,7 @@ TaskManager::TaskManager()
 QSharedPointer<BoardLoad> TaskManager::loadBoard()
 {
     BoardLoad *boardLoad= new BoardLoad;
-    boardLoad->boardInfo = *(getBoard(currentBoardName).data());
+    boardLoad->boardInfo = *(getBoardInfo(currentBoardName).data());
 
     SharedPtrColumnInfoList sharedPtrColumnInfoList = getColumnInfosByBoardName(currentBoardName);
 
@@ -27,6 +27,9 @@ QSharedPointer<BoardLoad> TaskManager::loadBoard()
             boardLoad->columns.push_back(column);
         }
     }
+
+    cache.cacheBoardInfo(boardLoad->boardInfo);
+
     return QSharedPointer<BoardLoad>(boardLoad);
 }
 
@@ -43,17 +46,27 @@ SharedPtrBoardList TaskManager::getBoards()
     return SharedPtrBoardList(boards);
 }
 
-QSharedPointer<BoardInfo> TaskManager::getBoard(QString name)
+QSharedPointer<BoardInfo> TaskManager::getBoardInfo(QString name)
 {
-    QSqlRecord record = DatabaseManager::instance().selectBoard(name);
-
-    if (record.value("name").toString().isEmpty()) {
-        return QSharedPointer<BoardInfo>();
-    }
-
     BoardInfo* boardInfo = new BoardInfo;
-    boardInfo->name = record.value("name").toString();
-    boardInfo->pathToBackGround = record.value("pathToBackGround").toString();
+
+    if (cache.getCachedBoardName() == name or name.isEmpty()) {
+        BoardInfo cached= cache.getCachedBoardInfo();
+        boardInfo->name = cached.name;
+        boardInfo->pathToBackGround = cached.pathToBackGround;
+        boardInfo->description = cached.description;
+    }
+    else {
+        QSqlRecord record = DatabaseManager::instance().selectBoard(name);
+
+        if (record.value("name").toString().isEmpty()) {
+            return QSharedPointer<BoardInfo>();
+        }
+
+        boardInfo->name = record.value("name").toString();
+        boardInfo->pathToBackGround = record.value("pathToBackGround").toString();
+        boardInfo->description = record.value("description").toString();
+    }
 
     return QSharedPointer<BoardInfo>(boardInfo);
 }
@@ -114,9 +127,20 @@ SharedPtrTaskInfoList TaskManager::getTaskInfosByBoardAndColumn(QString boardNam
 
 TaskManager::OpStatus TaskManager::addBoard(QString name, QString descriprion, QString pathToBackGround)
 {
-    return DatabaseManager::instance().insertBoard(name,
+    TaskManager::OpStatus status = DatabaseManager::instance().insertBoard(name,
                                             descriprion.isEmpty()? nullptr: &descriprion,
                                             pathToBackGround.isEmpty()? nullptr: &pathToBackGround);
+
+    if (status == TaskManager::OpStatus::Success) {
+        BoardInfo boardInfo;
+        boardInfo.name = name;
+        boardInfo.description = descriprion;
+        boardInfo.pathToBackGround = pathToBackGround;
+        cache.cacheBoardInfo(boardInfo);
+
+        return OpStatus::Success;
+    }
+    return status;
 }
 
 TaskManager::OpStatus TaskManager::addColumn(QString name)
@@ -134,9 +158,22 @@ TaskManager::OpStatus TaskManager::addTask(QString columnName, QString& datetime
     return DatabaseManager::instance().insertBackTask(taskKey, description, deadline.isEmpty()? nullptr: &deadline);
 }
 
-TaskManager::OpStatus TaskManager::updateBoard(QString *newName, QString *newDescription, QString *newPathToBackground)
+TaskManager::OpStatus TaskManager::updateBoard(QString newName, QString newDescription, QString newPathToBackground)
 {
-    return DatabaseManager::instance().updateBoard(currentBoardName, newName, newDescription, newPathToBackground);
+    TaskManager::OpStatus status = DatabaseManager::instance().updateBoard(currentBoardName,
+                                                   newName.isEmpty() ? nullptr : &newName,
+                                                   newDescription.isEmpty() ? nullptr : &newDescription,
+                                                   newPathToBackground.isEmpty() ? nullptr : &newPathToBackground);
+    if (status == TaskManager::OpStatus::Success) {
+        BoardInfo boardInfo;
+        boardInfo.name = newName;
+        boardInfo.description = newDescription;
+        boardInfo.pathToBackGround = newPathToBackground;
+        cache.cacheBoardInfo(boardInfo);
+
+        return OpStatus::Success;
+    }
+    return status;
 }
 
 TaskManager::OpStatus TaskManager::updateColumnPos(QString name, ColumnUIntT newPos)
