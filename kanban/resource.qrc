@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/resource">
+        <file>img/newColumn.png</file>
+        <file>img/appIcon.png</file>
+        <file>db_model/kanban.png</file>
+        <file>db_model/kanban_db_generator.sql</file>
+        <file>img/removeBoard.png</file>
+        <file>img/boardDescription.png</file>
+    </qresource>
+</RCC>
