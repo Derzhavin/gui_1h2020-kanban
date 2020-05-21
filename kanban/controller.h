@@ -45,8 +45,7 @@ public slots:
     void openBoard();
     void createBoard();
     void reviewBoards();
-    void openBoardWindow();
-    void openExistingProjectWindow(QString boardName);
+    void openProjectWindow();
 
     void showBoardDetails();
     void removeBoard();

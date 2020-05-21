@@ -1,6 +1,5 @@
 #include "customtasklistview.h"
 #include "columnwidget.h"
-#include <QDebug>
 
 CustomTaskListView::CustomTaskListView(QWidget *parent): QListView(parent)
 {

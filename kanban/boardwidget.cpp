@@ -22,12 +22,20 @@ void BoardWidget::removeColumnWidgetAtPos(ColumnUIntT pos)
 
 void BoardWidget::setData(BoardLoad *boardLoad)
 {
+    clearData();
     for(ColumnUIntT i = 0; i < boardLoad->columns.size(); i++) {
         ColumnWidget *columnWidget = new ColumnWidget(boardLoad->columns.at(i).columnInfo.name,
                                                       boardLoad->columns.at(i).tasks,
                                                       this
                                                       );
         pushBackColumnWidget(columnWidget);
+    }
+}
+
+void BoardWidget::clearData()
+{
+    for(ColumnUIntT i = 0; i < columnWidgets.size(); i++) {
+        removeColumnWidgetAtPos(i);
     }
 }
 

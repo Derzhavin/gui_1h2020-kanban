@@ -22,7 +22,7 @@ public:
     ~BoardSelectionDialog();
 
     void setListViewWithData(BoardList *boardList);
-    QString getSelectedBoard();
+    QString getSelectedBoardName();
 
 public slots:
     void goBackPushButtonClick();
@@ -30,7 +30,7 @@ public slots:
 
 signals:
     void reviewBoardsClick();
-    void openExistingProjectWindowClick(QString boardName);
+    void openProjectWindowClick();
 
 private slots:
     void on_applyChoicePushButton_clicked();

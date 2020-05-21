@@ -20,10 +20,10 @@ public:
     void setDescriptiinEdit(QString description);
     QString getDescriptionEditText();
     void setBoardNameEdit(QString boardName);
-    QString getBoardNameEdit();
+    QString getBoardNameEditText();
 
     bool isDescriptionEditChecked();
-    bool isBoardnameEditChecked();
+    bool isBoardNameEditChecked();
 
     bool isEditsClear();
     void clearEdits();

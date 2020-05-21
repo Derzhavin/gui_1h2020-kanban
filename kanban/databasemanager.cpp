@@ -62,6 +62,7 @@ DatabaseManager::OpStatus DatabaseManager::updateBoard(QString &boardName, QStri
     }
 
     if (newBoardName and newDescription and newPathToBackground) {
+
         query.prepare("UPDATE board SET name = ?, description = ?, path_to_background = ? WHERE name = ?");
 
         query.addBindValue(*newBoardName);
@@ -93,7 +94,6 @@ DatabaseManager::OpStatus DatabaseManager::updateBoard(QString &boardName, QStri
     }
     else if (newDescription) {
         query.prepare("UPDATE board SET description = ? WHERE name = ?");
-
         query.addBindValue(*newDescription);
     }
     else if (newPathToBackground) {
