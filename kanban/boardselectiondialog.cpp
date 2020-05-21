@@ -31,7 +31,7 @@ void BoardSelectionDialog::setListViewWithData(BoardList *boardList)
     model->setStringList(list);
 }
 
-QString BoardSelectionDialog::getSelectedBoard()
+QString BoardSelectionDialog::getSelectedBoardName()
 {
     return ui->chosenBoardLineEdit->text();
 }
@@ -53,6 +53,6 @@ void BoardSelectionDialog::on_applyChoicePushButton_clicked()
     if (ui->chosenBoardLineEdit->text().isEmpty()) {
         QMessageBox::information(this, this->windowTitle(), "No board was chosen.");
     } else {
-        emit openExistingProjectWindowClick(ui->chosenBoardLineEdit->text());
+        emit openProjectWindowClick();
     }
 }

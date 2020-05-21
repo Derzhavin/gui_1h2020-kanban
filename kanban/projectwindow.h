@@ -24,6 +24,7 @@ public:
     ~ProjectWindow();
 
     void setBoardWithData(BoardLoad *boardLoad);
+    void clearBoard();
 
 public slots:
     void goToBoardsPushButtonClicked();

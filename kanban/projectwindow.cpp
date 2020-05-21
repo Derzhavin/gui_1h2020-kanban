@@ -21,6 +21,11 @@ void ProjectWindow::setBoardWithData(BoardLoad *boardLoad)
     ui->boardWidget->setData(boardLoad);
 }
 
+void ProjectWindow::clearBoard()
+{
+    ui->boardWidget->clearData();
+}
+
 void ProjectWindow::goToBoardsPushButtonClicked()
 {
     emit reviewBoardsClick();

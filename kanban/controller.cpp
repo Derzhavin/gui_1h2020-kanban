@@ -1,5 +1,4 @@
 #include "controller.h"
-#include <QDebug>
 
 Controller::Controller()
 {
@@ -7,13 +6,13 @@ Controller::Controller()
     QObject::connect(&projectReviewDialog, SIGNAL(openBoardClick()), this, SLOT(openBoard()));
 
     QObject::connect(&createProjectDialog, SIGNAL(reviewBoardsClick()), this, SLOT(reviewBoards()));
-    QObject::connect(&createProjectDialog, SIGNAL(openBoardWindowClick()), this, SLOT(openBoardWindow()));
+    QObject::connect(&createProjectDialog, SIGNAL(openBoardWindowClick()), this, SLOT(openProjectWindow()));
 
     QObject::connect(&boardSelectDialog, SIGNAL(reviewBoardsClick()), this, SLOT(reviewBoards()));
     QObject::connect(&boardSelectDialog,
-                     SIGNAL(openExistingProjectWindowClick(QString)),
+                     SIGNAL(openProjectWindowClick()),
                      this,
-                     SLOT(openExistingProjectWindow(QString)));
+                     SLOT(openProjectWindow()));
 
     QObject::connect(&projectWindow, SIGNAL(reviewBoardsClick()), this, SLOT(reviewBoards()));
     QObject::connect(&projectWindow, SIGNAL(addColumnClick()), this, SLOT(addColumn()));
@@ -39,7 +38,7 @@ Controller::Controller()
 
 void Controller::run()
 {
-    projectReviewDialog.exec();
+    projectReviewDialog.show();
 }
 
 void Controller::centerWidget(QWidget *widget)
@@ -95,36 +94,34 @@ void Controller::openTaskInputDialog(std::function<bool(QString &description, QS
     }
 }
 
-void Controller::openBoard()
+void Controller::openBoard() // Сигнал исходит только от projectReviewDialog
 {
-    qobject_cast<QDialog*>(sender())->close();
 
     SharedPtrBoardList sharedPtrBoardList = taskManager.getBoards();
     if (sharedPtrBoardList.data()->size()) {
         boardSelectDialog.setListViewWithData(sharedPtrBoardList.data());
     }
 
+    projectReviewDialog.close();
     boardSelectDialog.show();
 }
 
-void Controller::createBoard()
+void Controller::createBoard() // Сигнал исходит только от projectReviewDialog
 {
-    qobject_cast<QDialog*>(sender())->close();
+    projectReviewDialog.close();
     createProjectDialog.show();
 }
 
-void Controller::reviewBoards()
+void Controller::reviewBoards() // Сигнал может исходить от projectWindow и createProjectDialog
 {
-    QWidget * widget = qobject_cast<QWidget*>(sender());
-
-    if (!qobject_cast<ProjectWindow*>(widget)) {
-        widget->close();
+    if (qobject_cast<CreateProjectDialog*>(sender())) {
+        createProjectDialog.close(); // Происходит, если нужно вернуться от createProjectDailog к projectReviewDialog
     }
 
     projectReviewDialog.show();
 }
 
-void Controller::openBoardWindow()
+void Controller::openProjectWindow() // Сигнал может исходить от createProjectDialog и boardSelectDialog
 {
     QDialog *dialog = qobject_cast<QDialog*>(sender());
 
@@ -153,8 +150,9 @@ void Controller::openBoardWindow()
             } else {
                 taskManager.currentBoardName = boardName;
 
-                createProjectDialog.clearEdits();
+                projectWindow.clearBoard();
                 createProjectDialog.close();
+                createProjectDialog.clearEdits();
 
                 centerWidget(&projectWindow);
                 projectWindow.show();
@@ -165,23 +163,21 @@ void Controller::openBoardWindow()
             QMessageBox::information(&createProjectDialog,  createProjectDialog.windowTitle(), msg);
         }
     }
+    else {
+        taskManager.currentBoardName = boardSelectDialog.getSelectedBoardName();
+        QSharedPointer<BoardLoad> sharedPtrBoardLoad = taskManager.loadBoard();
+
+        centerWidget(&projectWindow);
+        projectWindow.setBoardWithData(sharedPtrBoardLoad.data());
+
+        sharedPtrBoardLoad.clear();
+
+        boardSelectDialog.close();
+        projectWindow.show();
+    }
 }
 
-void Controller::openExistingProjectWindow(QString boardName)
-{
-    qobject_cast<QDialog*>(sender())->close();
-
-    taskManager.currentBoardName = boardName;
-    QSharedPointer<BoardLoad> sharedPtrBoardLoad = taskManager.loadBoard();
-    centerWidget(&projectWindow);
-    projectWindow.setBoardWithData(sharedPtrBoardLoad.data());
-
-    sharedPtrBoardLoad.clear();
-
-    projectWindow.show();
-}
-
-void Controller::showBoardDetails()
+void Controller::showBoardDetails() // Сигнал исходит только от projectWindow
 {
 
     if (boardDetailsDialog.isEditsClear()) {
@@ -196,14 +192,14 @@ void Controller::showBoardDetails()
         result = boardDetailsDialog.exec();
 
         if (result) {
-            QString newBoardName;
-            QString newDescription;
+            QString newBoardName = "";
+            QString newDescription = "";
 
-            if (boardDetailsDialog.isBoardnameEditChecked()) {
+            if (boardDetailsDialog.isDescriptionEditChecked()) {
                 newDescription = boardDetailsDialog.getDescriptionEditText();
             }
-            if (boardDetailsDialog.isBoardnameEditChecked() and newBoardName != taskManager.currentBoardName) {
-                newBoardName = boardDetailsDialog.getBoardNameEdit();
+            if (boardDetailsDialog.isBoardNameEditChecked()) {
+                newBoardName = boardDetailsDialog.getBoardNameEditText();
             }
 
             TaskManager::OpStatus status = taskManager.updateBoard(newBoardName, newDescription, "");
@@ -234,7 +230,7 @@ void Controller::showBoardDetails()
 
 }
 
-void Controller::removeBoard()
+void Controller::removeBoard() // Сигнал исходит только от projectWindow
 {
     QMessageBox::StandardButton reply = QMessageBox::question(&projectWindow,
                                                               projectWindow.windowTitle(),

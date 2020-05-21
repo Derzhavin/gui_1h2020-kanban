@@ -31,7 +31,7 @@ void BoardDetailsDialog::setBoardNameEdit(QString boardName)
     ui->boardNameLineEdit->setText(boardName);
 }
 
-QString BoardDetailsDialog::getBoardNameEdit()
+QString BoardDetailsDialog::getBoardNameEditText()
 {
     return ui->boardNameLineEdit->text();
 }
@@ -41,7 +41,7 @@ bool BoardDetailsDialog::isDescriptionEditChecked()
     return ui->descriptionCheckBox->isChecked();
 }
 
-bool BoardDetailsDialog::isBoardnameEditChecked()
+bool BoardDetailsDialog::isBoardNameEditChecked()
 {
     return ui->boardNameCheckBox->isChecked();
 }
