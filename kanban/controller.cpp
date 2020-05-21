@@ -191,8 +191,8 @@ void Controller::showBoardDetails()
         boardDetailsDialog.setDescriptiinEdit(sharedPtrBoardInfo.data()->description);
     }
 
-    bool result = false, valid = false;
-    while (!result and !valid) {
+    bool result = true, valid = false;
+    while (result and !valid) {
         result = boardDetailsDialog.exec();
 
         if (result) {
@@ -202,7 +202,7 @@ void Controller::showBoardDetails()
             if (boardDetailsDialog.isBoardnameEditChecked()) {
                 newDescription = boardDetailsDialog.getDescriptionEditText();
             }
-            if (boardDetailsDialog.isBoardnameEditChecked()) {
+            if (boardDetailsDialog.isBoardnameEditChecked() and newBoardName != taskManager.currentBoardName) {
                 newBoardName = boardDetailsDialog.getBoardNameEdit();
             }
 
