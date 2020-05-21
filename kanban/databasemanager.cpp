@@ -117,7 +117,7 @@ bool DatabaseManager::deleteBoard(QString &boardName)
 
 void DatabaseManager::selectBoards(QSqlTableModel& model)
 {
-    selectFromTable(model, "board", [&](){});
+    selectFromTable(model, "board", [](){});
 }
 
 QSqlRecord DatabaseManager::selectBoard(QString &boardName)
@@ -226,7 +226,7 @@ DatabaseManager::OpStatus DatabaseManager::deleteColumn(ColumnKey &columnKey)
 
 void DatabaseManager::selectColumnsByBoardName(QSqlTableModel &model, QString &boardName)
 {
-    selectFromTable(model, "column", [&]() {model.setFilter("board_name = " + boardName);});
+    selectFromTable(model, "column", [&]() {model.setFilter("board_name = \"" + boardName + "\"");});
 }
 
 QSqlRecord DatabaseManager::selectColumn(ColumnKey &columnKey)
@@ -480,7 +480,7 @@ bool DatabaseManager::updateColumnPos(ColumnKey &columnKey, ColumnUIntT &newPos)
 
 void DatabaseManager::moveRowsByOne(QSqlTableModel &model, bool direction)
 {
-    foreachRecordInModel(model, [&](QSqlRecord& record) {
+    DatabaseManager::instance().foreachRecordInModel(model, [&](QSqlRecord& record) {
         RecordUIntT pos = record.value("order_num").toUInt();
         pos += direction ? -1: 1;
         record.setValue("order_num", pos);
@@ -502,8 +502,8 @@ TaskUIntT DatabaseManager::findMaxTaskPosInColumn(ColumnKey& columnKey)
 
 void DatabaseManager::selectTasksByColumn(QSqlTableModel &model, ColumnKey &columnKey)
 {
-    selectFromTable(model, "column", [&]() {
-        model.setFilter("board_name = " + columnKey.first + "name = " + columnKey.second);
+    selectFromTable(model, "task", [&]() {
+        model.setFilter("board_name = \"" + columnKey.first + "\" name = \"" + columnKey.second + "\"");
     });
 }
 

@@ -40,7 +40,14 @@
     </layout>
    </item>
    <item>
-    <widget class="QListView" name="boardsListView"/>
+    <widget class="QListView" name="boardsListView">
+     <property name="showDropIndicator" stdset="0">
+      <bool>false</bool>
+     </property>
+     <property name="dragEnabled">
+      <bool>false</bool>
+     </property>
+    </widget>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">

@@ -15,7 +15,7 @@ ColumnWidget::ColumnWidget(QString columnName, QWidget *parent): QWidget(parent)
 
     tasksListView->setModel(columnDataModel);
 
-    ProjectWindow* projectWindow = qobject_cast<ProjectWindow*>(QWidget::window());
+    ProjectWindow* projectWindow = qobject_cast<ProjectWindow*>(this->window());
     QObject::connect(removeColumnPushButton, SIGNAL(clicked()), projectWindow, SLOT(removeColumnPushButtonClick()));
     QObject::connect(renameColumnPushButton, SIGNAL(clicked()), projectWindow, SLOT(renameColumnPushButtonClick()));
     QObject::connect(addTaskPushButton, SIGNAL(clicked()), projectWindow, SLOT(addTaskPushButtonClick()));
@@ -40,6 +40,14 @@ ColumnWidget::ColumnWidget(QString columnName, QWidget *parent): QWidget(parent)
     layout()->addWidget(renameColumnPushButton);
     layout()->addWidget(removeColumnPushButton);
     layout()->addWidget(tasksListView);
+}
+
+ColumnWidget::ColumnWidget(QString columnName, Tasks tasks, QWidget *parent): ColumnWidget(columnName, parent)
+{
+    for(TaskUIntT i = 0; i < tasks.size(); i++) {
+        TaskInfo taskInfo = tasks.at(i);
+        pushFrontTask(taskInfo.description, taskInfo.datetimeCreated, taskInfo.deadline);
+    }
 }
 
 void ColumnWidget::setColumnName(QString name)

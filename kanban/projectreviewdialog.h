@@ -17,8 +17,8 @@ public:
     ~ProjectReviewDialog();
 
 public slots:
-    void createBoardtPushButtonClick();
-    void openBoardtPushButtonClick();
+    void createBoardPushButtonClick();
+    void openBoardPushButtonClick();
 
 signals:
     void createBoard();

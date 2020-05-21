@@ -15,6 +15,8 @@ public:
 
     void pushBackColumnWidget(ColumnWidget *column);
     void removeColumnWidgetAtPos(ColumnUIntT pos);
+    void setData(BoardLoad *boardLoad);
+
     ColumnUIntT getColumnWidgetPos(ColumnWidget *columnWidget);
     ColumnUIntT columnsNum();
 

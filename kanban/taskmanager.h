@@ -10,11 +10,13 @@
 #include <QSqlTableModel>
 #include <QDateTime>
 #include <QSharedPointer>
+#include <QPair>
+#include <array>
 
 struct BoardInfo {
     QString name;
-    QString description;
     QString pathToBackGround;
+    QString description;
 };
 
 struct ColumnInfo {
@@ -30,9 +32,25 @@ struct TaskInfo {
     TaskUIntT pos;
 };
 
+struct Column;
+
 using SharedPtrBoardInfoList = QSharedPointer<QList<BoardInfo>>;
 using SharedPtrColumnInfoList = QSharedPointer<QList<ColumnInfo>>;
 using SharedPtrTaskInfoList = QSharedPointer<QList<TaskInfo>>;
+using SharedPtrBoardList = QSharedPointer<QList<QString>>;
+using BoardList = QList<QString>;
+using Tasks = QVector<TaskInfo>;
+using Columns = QList<Column>;
+
+struct Column {
+    ColumnInfo columnInfo;
+    Tasks tasks;
+};
+
+struct BoardLoad {
+    BoardInfo boardInfo;
+    Columns columns;
+};
 
 class TaskManager
 {
@@ -41,7 +59,9 @@ public:
 
     TaskManager();
 
-    SharedPtrBoardInfoList getBoardsInfos();
+    QSharedPointer<BoardLoad> loadBoard();
+
+    SharedPtrBoardList getBoards();
     QSharedPointer<BoardInfo> getBoard(QString name);
     OpStatus addBoard(QString name, QString descriprion = "", QString pathToBackGround = "");
     OpStatus updateBoard(QString name, QString* newName, QString* newDescription = nullptr, QString* newPathToBackground = nullptr);
@@ -54,7 +74,7 @@ public:
     OpStatus renameColumn(QString name, QString& newColumnName);
     OpStatus removeColumn(QString name);
 
-    SharedPtrTaskInfoList getTaskInfosByBoardColumn(QString boardName, QString columnName);
+    SharedPtrTaskInfoList getTaskInfosByBoardAndColumn(QString boardName, QString columnName);
     OpStatus addTask(QString columnName, QString& datetimeCreated, QString description, QString deadline = "");
     OpStatus updateTaskPosInColumn(QString columnName, QString datetimeCreated, TaskUIntT& newPos);
     OpStatus updateTask(QString columnName, QString datetimeCreated, QString newDescription, QString deadline = "");

@@ -60,9 +60,10 @@ public:
     TaskUIntT findMaxTaskPosInColumn(ColumnKey& columnKey);
     void selectTasksByColumn(QSqlTableModel &model, ColumnKey &columnKey);
 
-    static void foreachRecordInModel(QSqlTableModel& model, std::function<void(QSqlRecord& record)> callback);
-    static void selectFromTable(QSqlTableModel& model,QString tableName, std::function<void()> callback);
+    void foreachRecordInModel(QSqlTableModel& model, std::function<void(QSqlRecord& record)> callback);
+    void selectFromTable(QSqlTableModel& model,QString tableName, std::function<void()> callback);
 
+    QSqlDatabase database;
 private:
     OpStatus insertColumn(ColumnKey& columnKey, ColumnUIntT pos);
     OpStatus insertTask(TaskKey &taskKey, TaskUIntT pos, QString& description, QString* deadline = nullptr);
@@ -74,7 +75,6 @@ private:
     static void bindColumnKey(QSqlQuery& query, ColumnKey& columnKey);
     static void bindTaskKey(QSqlQuery& query, TaskKey& taskKey);
 
-    QSqlDatabase database;
     bool isTransaction;
 };
 

@@ -3,14 +3,17 @@
 
 Controller::Controller()
 {    
-    QObject::connect(&projectReviewDialog, SIGNAL(createBoard()), this, SLOT(openBoard()));
-    QObject::connect(&projectReviewDialog, SIGNAL(openBoard()), this, SLOT(createBoard()));
+    QObject::connect(&projectReviewDialog, SIGNAL(createBoard()), this, SLOT(createBoard()));
+    QObject::connect(&projectReviewDialog, SIGNAL(openBoard()), this, SLOT(openBoard()));
 
     QObject::connect(&createProjectDialog, SIGNAL(reviewBoards()), this, SLOT(reviewBoards()));
     QObject::connect(&createProjectDialog, SIGNAL(openBoardWindow()), this, SLOT(openBoardWindow()));
 
     QObject::connect(&boardSelectDialog, SIGNAL(reviewBoards()), this, SLOT(reviewBoards()));
-    QObject::connect(&boardSelectDialog, SIGNAL(openBoardWindow()), this, SLOT(openBoardWindow()));
+    QObject::connect(&boardSelectDialog,
+                     SIGNAL(openExistingProjectWindow(QString)),
+                     this,
+                     SLOT(openExistingProjectWindow(QString)));
 
     QObject::connect(&projectWindow, SIGNAL(reviewBoards()), this, SLOT(reviewBoards()));
     QObject::connect(&projectWindow, SIGNAL(addColumn()), this, SLOT(addColumn()));
@@ -33,7 +36,7 @@ Controller::Controller()
 
 void Controller::run()
 {
-    projectReviewDialog.show();
+    projectReviewDialog.exec();
 }
 
 void Controller::centerWidget(QWidget *widget)
@@ -92,13 +95,19 @@ void Controller::openTaskInputDialog(std::function<bool(QString &description, QS
 void Controller::openBoard()
 {
     qobject_cast<QDialog*>(sender())->close();
-    createProjectDialog.show();
+
+    SharedPtrBoardList sharedPtrBoardList = taskManager.getBoards();
+    if (sharedPtrBoardList.data()->size()) {
+        boardSelectDialog.setListViewWithData(sharedPtrBoardList.data());
+    }
+
+    boardSelectDialog.exec();
 }
 
 void Controller::createBoard()
 {
     qobject_cast<QDialog*>(sender())->close();
-    boardSelectDialog.show();
+    createProjectDialog.exec();
 }
 
 void Controller::reviewBoards()
@@ -109,7 +118,7 @@ void Controller::reviewBoards()
         widget->close();
     }
 
-    projectReviewDialog.show();
+    projectReviewDialog.exec();
 }
 
 void Controller::openBoardWindow()
@@ -152,7 +161,23 @@ void Controller::openBoardWindow()
             QString msg =  "The board with this name is exist.";
             QMessageBox::information(&createProjectDialog,  createProjectDialog.windowTitle(), msg);
         }
+    } else {
+        // Обработка вызова, который пришёл от projectWindow
     }
+}
+
+void Controller::openExistingProjectWindow(QString boardName)
+{
+    boardSelectDialog.close();
+
+    taskManager.currentBoardName = boardName;
+    QSharedPointer<BoardLoad> sharedPtrBoardLoad = taskManager.loadBoard();
+    centerWidget(&projectWindow);
+    projectWindow.setBoardWithData(sharedPtrBoardLoad.data());
+
+    sharedPtrBoardLoad.clear();
+
+    projectWindow.show();
 }
 
 void Controller::addColumn()

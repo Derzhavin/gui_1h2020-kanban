@@ -1,14 +1,21 @@
 #include "boardselectiondialog.h"
 #include "ui_boardselectiondialog.h"
 
+#include <QDebug>
+
 BoardSelectionDialog::BoardSelectionDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::BoardSelectionDialog)
 {
     ui->setupUi(this);
 
+    model = new QStringListModel;
+
+    ui->boardsListView->setModel(model);
+    ui->boardsListView->setSelectionMode(QAbstractItemView::SingleSelection);
+
     QObject::connect(ui->goBackPushButton, SIGNAL(clicked()), this, SLOT(goBackPushButtonClick()));
-    QObject::connect(ui->applyChoicePushButton, SIGNAL(clicked()), this, SLOT(applyChoicePushButtonClick()));
+    QObject::connect(ui->boardsListView, SIGNAL(pressed(QModelIndex)), this, SLOT(listViewClick(QModelIndex)));
 }
 
 BoardSelectionDialog::~BoardSelectionDialog()
@@ -16,19 +23,38 @@ BoardSelectionDialog::~BoardSelectionDialog()
     delete ui;
 }
 
+void BoardSelectionDialog::setListViewWithData(BoardList *boardList)
+{
+    QStringList list;
+    for(BoardUintT i = 0; i < boardList->size(); i++) {
+        QString text = boardList->at(i);
+        list.append(text);
+    }
+    model->setStringList(list);
+}
+
+QString BoardSelectionDialog::getSelectedBoard()
+{
+    return ui->chosenBoardLineEdit->text();
+}
+
 void BoardSelectionDialog::goBackPushButtonClick()
 {
     emit reviewBoards();
 }
 
-void BoardSelectionDialog::applyChoicePushButtonClick()
+void BoardSelectionDialog::listViewClick(QModelIndex index)
 {
-    if (!ui->chosenBoardLineEdit->text().isEmpty()) {
-        emit openBoardWindow();
-    } else {
-        // To do:
-        // Добавить анимацию chosenBoardLineEdit менеджером анимации
+    if (index.isValid()) {
+        ui->chosenBoardLineEdit->setText(model->data(index).toString());
     }
 }
 
-////    QObject::connect(timeLine, &QTimeLine::finished, timeLine, &QTimeLine::deleteLater);
+void BoardSelectionDialog::on_applyChoicePushButton_clicked()
+{
+    if (ui->chosenBoardLineEdit->text().isEmpty()) {
+        QMessageBox::information(this, this->windowTitle(), "No board was chosen.");
+    } else {
+        emit openExistingProjectWindow(ui->chosenBoardLineEdit->text());
+    }
+}

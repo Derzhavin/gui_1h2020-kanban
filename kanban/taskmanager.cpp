@@ -1,26 +1,47 @@
 #include "taskmanager.h"
 #include <QDebug>
-
+#include <QSqlError>
 TaskManager::TaskManager()
 {
-
+    DatabaseManager::instance();
 }
 
-SharedPtrBoardInfoList TaskManager::getBoardsInfos()
+QSharedPointer<BoardLoad> TaskManager::loadBoard()
+{
+    BoardLoad *boardLoad= new BoardLoad;
+    boardLoad->boardInfo = *(getBoard(currentBoardName).data());
+
+    SharedPtrColumnInfoList sharedPtrColumnInfoList = getColumnInfosByBoardName(currentBoardName);
+
+    if (sharedPtrColumnInfoList.data()) {
+        for(ColumnUIntT i = 0; i < sharedPtrColumnInfoList.data()->size(); i++) {
+            Column column;
+            column.columnInfo = sharedPtrColumnInfoList.data()->at(i);
+
+            SharedPtrTaskInfoList sharedPtrTaskInfoList = getTaskInfosByBoardAndColumn(currentBoardName, column.columnInfo.name);
+
+            if (sharedPtrTaskInfoList .data()) {
+                for(TaskUIntT j = 0; j < sharedPtrTaskInfoList.data()->size(); j++) {
+                    column.tasks.push_back(sharedPtrTaskInfoList.data()->at(j));
+                }
+            }
+            boardLoad->columns.push_back(column);
+        }
+    }
+    return QSharedPointer<BoardLoad>(boardLoad);
+}
+
+SharedPtrBoardList TaskManager::getBoards()
 {
     QSqlTableModel model;
     DatabaseManager::instance().selectBoards(model);
 
-    QList<BoardInfo> *boardsInfos;
-    DatabaseManager::foreachRecordInModel(model, [&](QSqlRecord& record){
-        BoardInfo boardInfo;
-        boardInfo.name = record.value("name").toString();
-        boardInfo.pathToBackGround = record.value("pathToBackGround").toString();
-        boardInfo.description = record.value("description").toString();
-
-        boardsInfos->push_back(boardInfo);
+    BoardList *boards = new BoardList;
+    DatabaseManager::instance().foreachRecordInModel(model, [&](QSqlRecord& record){
+        QString board = record.value("name").toString();
+        boards->push_back(board);
     });
-    return SharedPtrBoardInfoList(boardsInfos);
+    return SharedPtrBoardList(boards);
 }
 
 QSharedPointer<BoardInfo> TaskManager::getBoard(QString name)
@@ -34,7 +55,6 @@ QSharedPointer<BoardInfo> TaskManager::getBoard(QString name)
     BoardInfo* boardInfo = new BoardInfo;
     boardInfo->name = record.value("name").toString();
     boardInfo->pathToBackGround = record.value("pathToBackGround").toString();
-    boardInfo->description = record.value("description").toString();
 
     return QSharedPointer<BoardInfo>(boardInfo);
 }
@@ -44,12 +64,12 @@ SharedPtrColumnInfoList TaskManager::getColumnInfosByBoardName(QString boardName
     QSqlTableModel model;
     DatabaseManager::instance().selectColumnsByBoardName(model, boardName);
 
-    QList<ColumnInfo> *columnInfos;
-    DatabaseManager::foreachRecordInModel(model, [&](QSqlRecord& record){
+    QList<ColumnInfo> *columnInfos = new QList<ColumnInfo>;
+    DatabaseManager::instance().foreachRecordInModel(model, [&](QSqlRecord& record){
         ColumnInfo columnInfo;
         columnInfo.name = record.value("name").toString();
         columnInfo.boardName = record.value("board_name").toString();
-        columnInfo.pos = record.value("order_num").toUInt();
+        columnInfo.pos = record.value("order_num").toUInt() - 1;
 
         columnInfos->push_back(columnInfo);
     });
@@ -74,19 +94,19 @@ QSharedPointer<ColumnInfo> TaskManager::getColumn(QString name)
     return QSharedPointer<ColumnInfo>(columnInfo);
 }
 
-SharedPtrTaskInfoList TaskManager::getTaskInfosByBoardColumn(QString boardName, QString columnName)
+SharedPtrTaskInfoList TaskManager::getTaskInfosByBoardAndColumn(QString boardName, QString columnName)
 {
     QSqlTableModel model;
     ColumnKey columnKey(boardName, columnName);
     DatabaseManager::instance().selectTasksByColumn(model, columnKey);
 
-    QList<TaskInfo> *taskInfos;
-    DatabaseManager::foreachRecordInModel(model, [&](QSqlRecord& record){
+    QList<TaskInfo> *taskInfos = new QList<TaskInfo>;
+    DatabaseManager::instance().foreachRecordInModel(model, [&](QSqlRecord& record){
         TaskInfo taskInfo;
         taskInfo.datetimeCreated = record.value("datetime_created").toString();
         taskInfo.deadline = record.value("deadline").toString();
         taskInfo.description= record.value("description").toString();
-        taskInfo.pos = record.value("order_num").toUInt();
+        taskInfo.pos = record.value("order_num").toUInt() -1;
 
         taskInfos->push_back(taskInfo);
     });

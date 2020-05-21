@@ -5,6 +5,7 @@
 #include "projectwindow.h"
 #include "customtasklistview.h"
 #include "columndatamodel.h"
+#include "taskmanager.h"
 
 #include <QListView>
 #include <QWidget>
@@ -22,6 +23,7 @@ class ColumnWidget: public QWidget
 
 public:
     ColumnWidget(QString columnName, QWidget *parent = nullptr);
+    ColumnWidget(QString columnName, Tasks tasks, QWidget *parent = nullptr);
 
     void setColumnName(QString name);
     void removeTask(QModelIndex& index);

@@ -18,6 +18,11 @@ ProjectWindow::~ProjectWindow()
     delete ui;
 }
 
+void ProjectWindow::setBoardWithData(BoardLoad *boardLoad)
+{
+    ui->boardWidget->setData(boardLoad);
+}
+
 void ProjectWindow::goToBoardsPushButtonClick()
 {
     emit reviewBoards();

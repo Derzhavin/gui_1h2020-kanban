@@ -88,7 +88,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QToolButton" name="delColumnToolButton">
+         <widget class="QToolButton" name="delBoardToolButton">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
             <horstretch>0</horstretch>
@@ -111,10 +111,11 @@
            <cursorShape>PointingHandCursor</cursorShape>
           </property>
           <property name="toolTip">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove custom column&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove board&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="styleSheet">
-           <string notr="true">background-image: url(:/resource/img/delColumn.png);</string>
+           <string notr="true">background-image: url(:/resource/img/removeBoard.png);
+background-repeat: no repeat;</string>
           </property>
           <property name="text">
            <string/>
@@ -163,7 +164,8 @@
            <enum>Qt::LeftToRight</enum>
           </property>
           <property name="styleSheet">
-           <string notr="true">background-image: url(:/resource/img/newColumn.png);</string>
+           <string notr="true">background-image: url(:/resource/img/newColumn.png);
+background-repeat: no repeat;</string>
           </property>
           <property name="inputMethodHints">
            <set>Qt::ImhNone</set>

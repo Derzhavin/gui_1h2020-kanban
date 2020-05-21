@@ -44,6 +44,7 @@ public slots:
     void createBoard();
     void reviewBoards();
     void openBoardWindow();
+    void openExistingProjectWindow(QString boardName);
 
     void addColumn();
     void removeColumn(ColumnWidget *columnWidget);
@@ -53,6 +54,8 @@ public slots:
     void taskChosen(ColumnWidget* columnWidget, QModelIndex& index, QPoint &clickPos);
     void taskDragged(ColumnWidget* columnWidget, QModelIndex& index);
     bool taskIsDropping(ColumnWidget* columnWidgetTo, QModelIndex& indexTo);
+
+signals:
 
 private:
     ProjectWindow projectWindow;

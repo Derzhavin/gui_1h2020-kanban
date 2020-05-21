@@ -2,6 +2,7 @@
 #define PROJECTWINDOW_H
 
 #include "columnwidget.h"
+#include "taskmanager.h"
 
 #include <functional>
 #include <QMainWindow>
@@ -21,6 +22,8 @@ class ProjectWindow : public QMainWindow
 public:
     ProjectWindow(QWidget *parent = nullptr);
     ~ProjectWindow();
+
+    void setBoardWithData(BoardLoad *boardLoad);
 
 public slots:
     void goToBoardsPushButtonClick();
