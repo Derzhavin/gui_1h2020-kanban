@@ -17,12 +17,12 @@ public:
     ~ProjectReviewDialog();
 
 public slots:
-    void createBoardtPushButtonClick();
-    void openBoardtPushButtonClick();
+    void createBoardPushButtonClick();
+    void openBoardPushButtonClick();
 
 signals:
-    void createBoard();
-    void openBoard();
+    void createBoardClick();
+    void openBoardClick();
 
 private:
     Ui::ProjectReviewDialog *ui;

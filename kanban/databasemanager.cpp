@@ -1,8 +1,6 @@
 #include "databasemanager.h"
-#include "config.h"
-#include <QDebug>
 
-DatabaseManager::DatabaseManager(): Singleton<DatabaseManager>(*this)
+DatabaseManager::DatabaseManager(): Singleton<DatabaseManager>(*this), isTransaction(false)
 {
     database = QSqlDatabase::addDatabase("QSQLITE");
 
@@ -10,12 +8,14 @@ DatabaseManager::DatabaseManager(): Singleton<DatabaseManager>(*this)
         QString script;
 
         QFile file(DB_CREATE_SCRIPT_PATH);
-        if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-               return;
-
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            QMessageBox::critical(nullptr, "", DB_FAIL_MSG);
+            return;
+        }
         while (!file.atEnd()) {
             script += file.readLine();
         }
+        file.close();
 
         SchemaCreateQuery schemaCreateQuery = SchemaCreateQuery(script);
 
@@ -30,20 +30,36 @@ DatabaseManager::DatabaseManager(): Singleton<DatabaseManager>(*this)
     }
 }
 
-bool DatabaseManager::insertBoard(QString &boardName, QString *description, QString *pathToBackground)
+DatabaseManager::OpStatus DatabaseManager::insertBoard(QString &boardName, QString *description, QString *pathToBackground)
 {
+    if (boardName.size() > DB_MAX_BOARD_NAME) {
+        return OpStatus::LongBoardName;
+    }
+
+    if (description and description->size() > DB_MAX_BOARD_DESCRIPTION) {
+        return OpStatus::LongBoardDescription;
+    }
+
     QSqlQuery query;
-    query.prepare("INSERT INTO board (name, description, path_to_background) VALUES (?, ?, ?)");
+    query.prepare("INSERT INTO board(name, description, path_to_background) VALUES (?, ?, ?)");
     query.addBindValue(boardName);
     query.addBindValue(description ? *description: nullptr);
     query.addBindValue(pathToBackground ? *pathToBackground: nullptr);
 
-    return query.exec();
+    return query.exec() ? OpStatus::Success : OpStatus::Failure;
 }
 
-bool DatabaseManager::updateBoard(QString &boardName, QString* newBoardName, QString *newDescription, QString *newPathToBackground)
+DatabaseManager::OpStatus DatabaseManager::updateBoard(QString &boardName, QString* newBoardName, QString *newDescription, QString *newPathToBackground)
 {
     QSqlQuery query;
+
+    if (newBoardName and newBoardName->size() > DB_MAX_BOARD_NAME) {
+        return OpStatus::LongBoardName;
+    }
+
+    if (newDescription and newDescription->size() > DB_MAX_BOARD_DESCRIPTION) {
+        return OpStatus::LongBoardDescription;
+    }
 
     if (newBoardName and newDescription and newPathToBackground) {
         query.prepare("UPDATE board SET name = ?, description = ?, path_to_background = ? WHERE name = ?");
@@ -88,21 +104,21 @@ bool DatabaseManager::updateBoard(QString &boardName, QString* newBoardName, QSt
 
     query.addBindValue(boardName);
 
-    return query.exec();
+    return query.exec() ? OpStatus::Success : OpStatus::Failure;
 }
 
-bool DatabaseManager::deleteBoard(QString &boardName)
+DatabaseManager::OpStatus DatabaseManager::deleteBoard(QString &boardName)
 {
     QSqlQuery query;
     query.prepare("DELETE FROM board WHERE name = ?");
     query.addBindValue(boardName);
 
-    return query.exec();
+    return query.exec() ? OpStatus::Success : OpStatus::Failure;
 }
 
 void DatabaseManager::selectBoards(QSqlTableModel& model)
 {
-    selectFromTable(model, "board", [&](){});
+    selectFromTable(model, "board", [](){});
 }
 
 QSqlRecord DatabaseManager::selectBoard(QString &boardName)
@@ -118,54 +134,75 @@ QSqlRecord DatabaseManager::selectBoard(QString &boardName)
     return QSqlRecord();
 }
 
-bool DatabaseManager::insertBackColumn(ColumnKey &columnKey)
+DatabaseManager::OpStatus DatabaseManager::insertBackColumn(ColumnKey &columnKey)
 {
     return doTransaction([&]() {
-        quint8 maxColumnPos = findMaxColumnPosInBoard(columnKey.first);
+        ColumnUIntT maxColumnPos = findMaxColumnPosInBoard(columnKey.first);
+
+        if (maxColumnPos + 1 > DB_MAX_COLUMN_NUM) {
+            return OpStatus::TableFull;
+        }
         return insertColumn(columnKey, maxColumnPos + 1);
     });
 }
 
-bool DatabaseManager::insertColumn(ColumnKey &columnKey, quint8 pos)
+
+DatabaseManager::OpStatus DatabaseManager::insertColumn(ColumnKey &columnKey, ColumnUIntT pos)
 {
+    if (columnKey.second > DB_MAX_COLUMN_NAME) {
+        return OpStatus::LongColumnName;
+    }
+
     QSqlQuery query;
     query.prepare("INSERT INTO column (board_name, name, order_num) VALUES (?, ?, ?)");
     bindColumnKey(query, columnKey);
     query.addBindValue(pos);
-
-    return query.exec();
+    return query.exec() ? OpStatus::Success : OpStatus::Failure;
 }
 
-bool DatabaseManager::updateColumnPosInBoard(ColumnKey& columnKey, quint8& newPos)
+DatabaseManager::OpStatus DatabaseManager::updateColumnPosInBoard(ColumnKey& columnKey, ColumnUIntT &newPos)
 {
     return doTransaction([&]() {
-        quint8 prevPos = selectColumn(columnKey).value("order_num").toUInt();
+        ColumnUIntT prevPos = selectColumn(columnKey).value("order_num").toUInt();
+
+        if (!prevPos) {
+            return  OpStatus::NoColumn;
+        }
 
         QSqlQuery query;
+
         query.prepare("UPDATE column SET order_num = order_num + ? WHERE board_name = ? AND (order_num BETWEEN ? AND ?)");
         query.addBindValue(newPos > prevPos ? -1: 1);
         query.addBindValue(columnKey.first);
         query.addBindValue(QString::number(std::min(prevPos, newPos)));
         query.addBindValue(QString::number(std::max(prevPos, newPos)));
 
-        return query.exec() ? updateColumnPos(columnKey, newPos): false;
+        if (query.exec()) {
+            return updateColumnPos(columnKey, newPos) ? OpStatus::Success: OpStatus::Failure;
+        }
+
+        return OpStatus::Failure;
     });
 }
 
-bool DatabaseManager::updateColumnName(ColumnKey& columnKey, QString& newColumnName)
+DatabaseManager::OpStatus DatabaseManager::updateColumnName(ColumnKey& columnKey, QString& newColumnName)
 {
+    if (newColumnName.size() > DB_MAX_COLUMN_NAME) {
+        return OpStatus::LongColumnName;
+    }
+
     QSqlQuery query;
     query.prepare("UPDATE column SET name = ? WHERE board_name = ? AND name = ?");
     query.addBindValue(newColumnName);
     bindColumnKey(query, columnKey);
 
-    return query.exec();
+    return query.exec() ? OpStatus::Success : OpStatus::Failure;
 }
 
-bool DatabaseManager::deleteColumn(ColumnKey &columnKey)
+DatabaseManager::OpStatus DatabaseManager::deleteColumn(ColumnKey &columnKey)
 {
     return doTransaction([&] () {
-        quint8 pos = selectColumn(columnKey).value("order_num").toUInt();
+        ColumnUIntT pos = selectColumn(columnKey).value("order_num").toUInt();
 
         if (pos) {
             QSqlQuery query;
@@ -173,21 +210,24 @@ bool DatabaseManager::deleteColumn(ColumnKey &columnKey)
             bindColumnKey(query, columnKey);
 
             if (query.exec()) {
-                query.prepare("UPDATE column SET order_num = order_num - 1 WHERE board_name = ? AND (order_num BETWEEN ? AND ?)");
+                query.prepare("UPDATE column SET order_num = order_num - 1 "
+                              "WHERE board_name = ? AND (order_num BETWEEN ? AND ?)");
                 query.addBindValue(columnKey.first);
                 query.addBindValue(pos);
                 query.addBindValue(DB_MAX_COLUMN_NUM);
-                return query.exec();
+                return query.exec() ? OpStatus::Success : OpStatus::Failure;
             }
+
+            return OpStatus::Failure;
         }
 
-        return false;
+        return OpStatus::NoColumn;
     });
 }
 
 void DatabaseManager::selectColumnsByBoardName(QSqlTableModel &model, QString &boardName)
 {
-    selectFromTable(model, "column", [&]() {model.setFilter("board_name = " + boardName);});
+    selectFromTable(model, "column", [&]() {model.setFilter("board_name = \"" + boardName + "\"");});
 }
 
 QSqlRecord DatabaseManager::selectColumn(ColumnKey &columnKey)
@@ -203,7 +243,7 @@ QSqlRecord DatabaseManager::selectColumn(ColumnKey &columnKey)
     return QSqlRecord();
 }
 
-quint8 DatabaseManager::findMaxColumnPosInBoard(QString boardName)
+ColumnUIntT DatabaseManager::findMaxColumnPosInBoard(QString boardName)
 {
     QSqlQuery query;
     query.prepare("SELECT MAX(order_num) AS max_order_num FROM column WHERE board_name = ?");
@@ -216,15 +256,24 @@ quint8 DatabaseManager::findMaxColumnPosInBoard(QString boardName)
     return 0;
 }
 
-bool DatabaseManager::insertBackTask(TaskKey &taskKey, QString &description, QString *deadline)
+DatabaseManager::OpStatus DatabaseManager::insertBackTask(TaskKey &taskKey, QString &description, QString *deadline)
 {
     ColumnKey columnKey(std::get<0>(taskKey), std::get<1>(taskKey));
-    quint8 maxPos = findMaxTaskPosInColumn(columnKey);
-    return insertTask(taskKey, maxPos + 1, description, deadline);
+    TaskUIntT maxPos = findMaxTaskPosInColumn(columnKey);
+
+    if (maxPos + 1 < DB_MAX_TASK_NUM) {
+        return insertTask(taskKey, maxPos + 1, description, deadline);
+    }
+
+    return OpStatus::TableFull;
 }
 
-bool DatabaseManager::insertTask(TaskKey &taskKey, quint8 pos, QString &description, QString *deadline)
+DatabaseManager::OpStatus DatabaseManager::insertTask(TaskKey &taskKey, TaskUIntT pos, QString &description, QString *deadline)
 {
+    if (description.size() > DB_MAX_TASK_DESCRIPTION) {
+        return OpStatus::LongTaskDescription;
+    }
+
     QSqlQuery query;
     query.prepare("INSERT INTO task "
                   "("
@@ -240,48 +289,61 @@ bool DatabaseManager::insertTask(TaskKey &taskKey, quint8 pos, QString &descript
     query.addBindValue(deadline ? *deadline: nullptr);
     query.addBindValue(pos);
 
-    return query.exec();
+    return query.exec() ? OpStatus::Success : OpStatus::Failure;
 }
 
-bool DatabaseManager::moveTaskToOtherColumn(TaskKey& taskKey, QString& newColumnName, quint8& newPos)
+DatabaseManager::OpStatus DatabaseManager::moveTaskToOtherColumn(TaskKey& taskKey, QString& newColumnName, TaskUIntT newPos)
 {
     return doTransaction([&]() {
         QSqlRecord record = selectTask(taskKey);
 
         if (record.count()) {
-            if (deleteTask(taskKey)) {
-                ColumnKey newColumnKey(std::get<0>(taskKey), newColumnName);
-                quint8 maxPosInNewColumn = findMaxTaskPosInColumn(newColumnKey);
+            OpStatus deleteStatus = deleteTask(taskKey);
 
-                if (newPos < maxPosInNewColumn + 2) {
-                    TaskKey newTaskKey(std::get<0>(taskKey), newColumnName, std::get<2>(taskKey));
+            if (deleteStatus == OpStatus::Success) {
+                TaskKey newTaskKey(std::get<0>(taskKey), newColumnName, std::get<2>(taskKey));
 
-                    QString description = record.value("description").toString();
-                    QVariant variantDeadline = record.value("deadline");
+                QString description = record.value("description").toString();
+                QVariant variantDeadline = record.value("deadline");
 
-                    bool insertBackTaskExec = true;
+                OpStatus insertBackTaskStatus = OpStatus::Success;
 
-                    if (variantDeadline.isValid()) {
-                        QString deadline = variantDeadline.toString();
-                        insertBackTaskExec = insertBackTask(taskKey, description, &deadline);
-                    } else {
-                        insertBackTaskExec = insertBackTask(taskKey, description, nullptr);
+                if (variantDeadline.isValid()) {
+                    QString deadline = variantDeadline.toString();
+
+                    if (!newPos) {
+                        return insertBackTask(newTaskKey, description, &deadline);
                     }
 
-                    if (insertBackTaskExec) {
-                        return updateTaskPosInColumn(newTaskKey, newPos);
+                    insertBackTaskStatus = insertBackTask(newTaskKey, description, &deadline);
+                } else {
+                    if (!newPos) {
+                        return insertBackTask(newTaskKey, description, nullptr);
                     }
+
+                    insertBackTaskStatus = insertBackTask(newTaskKey, description, nullptr);
                 }
+
+                if (insertBackTaskStatus == OpStatus::Success) {
+                    return updateTaskPosInColumn(newTaskKey, newPos);
+                }
+
+                return insertBackTaskStatus;
             }
+            return deleteStatus;
         }
 
-        return false;
+        return OpStatus::NoTask;
     });
 }
-bool DatabaseManager::updateTaskPosInColumn(TaskKey& taskKey, quint8& newPos)
+DatabaseManager::OpStatus DatabaseManager::updateTaskPosInColumn(TaskKey& taskKey, TaskUIntT &newPos)
 {
     return doTransaction([&]() {
-        quint8 prevPos = selectTask(taskKey).value("order_num").toUInt();
+        TaskUIntT prevPos = selectTask(taskKey).value("order_num").toUInt();
+
+        if (!prevPos) {
+            return OpStatus::NoTask;
+        }
 
         QSqlQuery query;
         query.prepare("UPDATE task SET order_num = order_num + ? "
@@ -297,11 +359,15 @@ bool DatabaseManager::updateTaskPosInColumn(TaskKey& taskKey, quint8& newPos)
         query.addBindValue(QString::number(std::min(prevPos, newPos)));
         query.addBindValue(QString::number(std::max(prevPos, newPos)));
 
-        return query.exec() ? updateTaskPos(taskKey, newPos): false;
+        if (query.exec()) {
+            return updateTaskPos(taskKey, newPos) ? OpStatus::Success : OpStatus::Failure;
+        }
+
+        return OpStatus::Failure;
     });
 }
 
-bool DatabaseManager::updateTaskPos(TaskKey &taskKey, quint8 pos)
+bool DatabaseManager::updateTaskPos(TaskKey &taskKey, TaskUIntT pos)
 {
     QSqlQuery query;
     query.prepare("UPDATE task SET order_num = ? WHERE board_name = ? AND column_name = ? AND datetime_created = ?");
@@ -311,25 +377,56 @@ bool DatabaseManager::updateTaskPos(TaskKey &taskKey, quint8 pos)
     return query.exec();
 }
 
-bool DatabaseManager::doTransaction(std::function<bool()> callback)
+DatabaseManager::OpStatus DatabaseManager::doTransaction(std::function<OpStatus()> callback)
 {
-    database.transaction();
-    return callback() ? database.commit() : database.rollback();
+    if (!isTransaction) {
+        isTransaction = true;
+        database.transaction();
+    }
+
+    OpStatus opStatus = callback();
+
+    if (opStatus == OpStatus::Success) {
+        database.commit();
+        isTransaction = false;
+        return OpStatus::Success;
+    }
+
+    if (!isTransaction) {
+        database.rollback();
+        isTransaction = false;
+    }
+
+    return opStatus;
 }
 
-bool DatabaseManager::updateTaskDescription(TaskKey& taskKey, QString& newDescription){
+DatabaseManager::OpStatus DatabaseManager::updateTask(TaskKey& taskKey, QString& newDescription, QString *deadline){
+    if (newDescription > DB_MAX_TASK_DESCRIPTION) {
+        return OpStatus::LongTaskDescription;
+    }
+
     QSqlQuery query;
-    query.prepare("UPDATE task SET description = ? WHERE board_name = ? AND column_name = ? AND datetime_created = ?");
+    query.prepare("UPDATE task SET description = ?, deadline = ? "
+                  "WHERE board_name = ? "
+                  "AND "
+                  "column_name = ? "
+                  "AND "
+                  "datetime_created = ?");
     query.addBindValue(newDescription);
+    query.addBindValue(deadline ? *deadline: nullptr);
     bindTaskKey(query, taskKey);
 
-    return query.exec();
+    return query.exec() ? OpStatus::Success : OpStatus::Failure;
 }
 
-bool DatabaseManager::deleteTask(TaskKey &taskKey)
+DatabaseManager::OpStatus DatabaseManager::deleteTask(TaskKey &taskKey)
 {
     return doTransaction([&]() {
-        quint8 pos = selectTask(taskKey).value("order_num").toUInt();
+        TaskUIntT pos = selectTask(taskKey).value("order_num").toUInt();
+
+        if (!pos) {
+            return OpStatus::NoTask;
+        }
 
         QSqlQuery query;
         query.prepare("DELETE FROM task WHERE board_name = ? AND column_name = ? AND datetime_created = ?");
@@ -349,16 +446,16 @@ bool DatabaseManager::deleteTask(TaskKey &taskKey)
             query.addBindValue(pos);
             query.addBindValue(DB_MAX_TASK_NUM);
 
-            return query.exec();
+            return query.exec() ? OpStatus::Success : OpStatus::Failure;
         }
 
-        return false;
+        return OpStatus::Failure;
     });
 }
 
 void DatabaseManager::foreachRecordInModel(QSqlTableModel &model, std::function<void (QSqlRecord &)> callback)
 {
-    for (quint8 i = 0; i < model.rowCount(); ++i) {
+    for (RecordUIntT i = 0; i < model.rowCount(); ++i) {
         QSqlRecord record = model.record(i);
         callback(record);
         model.setRecord(i, record);
@@ -372,7 +469,7 @@ void DatabaseManager::selectFromTable(QSqlTableModel& model,QString tableName, s
     model.select();
 }
 
-bool DatabaseManager::updateColumnPos(ColumnKey &columnKey, quint8 &newPos)
+bool DatabaseManager::updateColumnPos(ColumnKey &columnKey, ColumnUIntT &newPos)
 {
     QSqlQuery query;
     query.prepare("UPDATE column SET order_num = ? WHERE board_name = ? AND name = ?");
@@ -384,14 +481,14 @@ bool DatabaseManager::updateColumnPos(ColumnKey &columnKey, quint8 &newPos)
 
 void DatabaseManager::moveRowsByOne(QSqlTableModel &model, bool direction)
 {
-    foreachRecordInModel(model, [&](QSqlRecord& record) {
-        quint8 pos = record.value("order_num").toUInt();
+    DatabaseManager::instance().foreachRecordInModel(model, [&](QSqlRecord& record) {
+        RecordUIntT pos = record.value("order_num").toUInt();
         pos += direction ? -1: 1;
         record.setValue("order_num", pos);
     });
 }
 
-quint8 DatabaseManager::findMaxTaskPosInColumn(ColumnKey& columnKey)
+TaskUIntT DatabaseManager::findMaxTaskPosInColumn(ColumnKey& columnKey)
 {
     QSqlQuery query;
     query.prepare("SELECT MAX(order_num) AS max_order_num FROM task WHERE board_name = ? AND column_name = ?");
@@ -406,8 +503,8 @@ quint8 DatabaseManager::findMaxTaskPosInColumn(ColumnKey& columnKey)
 
 void DatabaseManager::selectTasksByColumn(QSqlTableModel &model, ColumnKey &columnKey)
 {
-    selectFromTable(model, "column", [&]() {
-        model.setFilter("board_name = " + columnKey.first + "name = " + columnKey.second);
+    selectFromTable(model, "task", [&]() {
+        model.setFilter("board_name = \"" + columnKey.first + "\" name = \"" + columnKey.second + "\"");
     });
 }
 
@@ -436,3 +533,4 @@ void DatabaseManager::bindTaskKey(QSqlQuery &query, TaskKey &taskKey)
     query.addBindValue(std::get<1>(taskKey));
     query.addBindValue(std::get<2>(taskKey));
 }
+

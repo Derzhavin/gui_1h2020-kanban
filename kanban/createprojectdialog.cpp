@@ -24,15 +24,12 @@ void CreateProjectDialog::clearEdits()
 
 void CreateProjectDialog::goBackPushButtonClick()
 {
-    emit reviewBoards();
+    emit reviewBoardsClick();
 }
 
 void CreateProjectDialog::createBoardPushButtonClick()
 {
     if (!ui->boardNameLineEdit->text().isEmpty()) {
-        emit openBoardWindow();
-    } else {
-        // To do:
-        // Добавить анимацию boardNameLineEdit менеджером анимации
+        emit openBoardWindowClick();
     }
 }

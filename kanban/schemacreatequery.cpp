@@ -2,7 +2,7 @@
 
 SchemaCreateQuery::SchemaCreateQuery(QString &script)
 {
-    int script_begin_pos = script.indexOf("ATTACH");
+    int script_begin_pos = script.indexOf("PRAGMA");
 
     statements = script.mid(script_begin_pos, script.length()).split(';');
 }

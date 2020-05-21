@@ -7,18 +7,18 @@ ProjectReviewDialog::ProjectReviewDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    QObject::connect(ui->openBoardPushButton, SIGNAL(clicked()), this, SLOT(openBoardtPushButtonClick()));
-    QObject::connect(ui->createBoardPushButton, SIGNAL(clicked()), this, SLOT(createBoardtPushButtonClick()));
+    QObject::connect(ui->openBoardPushButton, SIGNAL(clicked()), this, SLOT(openBoardPushButtonClick()));
+    QObject::connect(ui->createBoardPushButton, SIGNAL(clicked()), this, SLOT(createBoardPushButtonClick()));
 }
 
-void ProjectReviewDialog::createBoardtPushButtonClick()
+void ProjectReviewDialog::createBoardPushButtonClick()
 {
-    emit createBoard();
+    emit createBoardClick();
 }
 
-void ProjectReviewDialog::openBoardtPushButtonClick()
+void ProjectReviewDialog::openBoardPushButtonClick()
 {
-    emit openBoard();
+    emit openBoardClick();
 }
 
 ProjectReviewDialog::~ProjectReviewDialog()

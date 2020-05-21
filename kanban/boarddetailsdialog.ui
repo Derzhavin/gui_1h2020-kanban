@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>TaskInputDialog</class>
- <widget class="QDialog" name="TaskInputDialog">
+ <class>BoardDetailsDialog</class>
+ <widget class="QDialog" name="BoardDetailsDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,36 +11,42 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Kanban</string>
-  </property>
-  <property name="windowIcon">
-   <iconset resource="resource.qrc">
-    <normaloff>:/resource/img/appIcon.png</normaloff>:/resource/img/appIcon.png</iconset>
+   <string>Dialog</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QFormLayout" name="formLayout_2">
+    <layout class="QFormLayout" name="formLayout">
      <item row="0" column="1">
-      <widget class="QDateTimeEdit" name="deadlineDateTimeEdit">
+      <widget class="QLineEdit" name="boardNameLineEdit">
        <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="readOnly">
         <bool>false</bool>
        </property>
       </widget>
      </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_3">
-       <property name="text">
-        <string>Description</string>
+     <item row="1" column="1">
+      <widget class="QTextEdit" name="descriptionTextEdit">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="readOnly">
+        <bool>false</bool>
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
-      <widget class="QTextEdit" name="descriptionTextEdit"/>
-     </item>
      <item row="0" column="0">
-      <widget class="QCheckBox" name="deadlineCheckBox">
+      <widget class="QCheckBox" name="boardNameCheckBox">
        <property name="text">
-        <string>Deadline</string>
+        <string>Board name</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QCheckBox" name="descriptionCheckBox">
+       <property name="text">
+        <string>Description</string>
        </property>
       </widget>
      </item>
@@ -48,9 +54,6 @@
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="cursor">
-      <cursorShape>PointingHandCursor</cursorShape>
-     </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
@@ -61,14 +64,12 @@
    </item>
   </layout>
  </widget>
- <resources>
-  <include location="resource.qrc"/>
- </resources>
+ <resources/>
  <connections>
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>TaskInputDialog</receiver>
+   <receiver>BoardDetailsDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -84,7 +85,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>TaskInputDialog</receiver>
+   <receiver>BoardDetailsDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

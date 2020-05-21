@@ -2,6 +2,7 @@
 #define PROJECTWINDOW_H
 
 #include "columnwidget.h"
+#include "taskmanager.h"
 
 #include <functional>
 #include <QMainWindow>
@@ -22,26 +23,42 @@ public:
     ProjectWindow(QWidget *parent = nullptr);
     ~ProjectWindow();
 
-//    void show(std::function<void()> callback);
+    void setBoardWithData(BoardLoad *boardLoad);
 
 public slots:
-    void goToBoardsPushButtonClick();
+    void goToBoardsPushButtonClicked();
 
-    void addColumnToolButtonClick();
-    void removeColumnPushButtonClick();
-    void renameColumnPushButtonClick();
+    void addColumnToolButtonClicked();
+    void removeColumnPushButtonClicked();
+    void renameColumnPushButtonClicked();
 
-    void addTaskPushButtonClick();
+    void taskChosenClicked(ColumnWidget* columnWidgdet, QModelIndex& index, QPoint& pos);
+    void addTaskPushButtonClicked();
+    void taskDraggedClicked(ColumnWidget* columnWidget, QModelIndex& index);
+    bool taskIsDroppingClicked(ColumnWidget* columnWidget, QModelIndex& index);
 
 signals:
-    void reviewBoards();
+    void reviewBoardsClick();
 
-    void addColumn();
-    void removeColumn(ColumnWidget *columnWidget);
-    void renameColumn(ColumnWidget *columnWidget);
+    void removeBoardClick();
+    void showBoardDetailsClick();
 
-    void addTask(ColumnWidget *columnWidget);
+    void taskChosenClick(ColumnWidget*, QModelIndex&, QPoint&);
+    void addColumnClick();
+    void removeColumnClick(ColumnWidget *columnWidget);
+    void renameColumnClick(ColumnWidget *columnWidget);
+
+    void addTaskClick(ColumnWidget *columnWidget);
+    void taskDraggedClick(ColumnWidget* columnWidget, QModelIndex& index);
+    bool taskIsDroppingClick(ColumnWidget* columnWidget, QModelIndex& index);
+
+private slots:
+    void on_delBoardToolButton_clicked();
+
+    void on_toolButton_clicked();
+
 private:
+    QMouseEvent *lastMouseEvent;
     Ui::MainWindow *ui;
 };
 #endif // PROJECTWINDOW_H

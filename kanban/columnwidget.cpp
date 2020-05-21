@@ -1,7 +1,6 @@
 #include "columnwidget.h"
 
-
-ColumnWidget::ColumnWidget(QString columnName, QWidget *parent): QWidget(parent)
+ColumnWidget::ColumnWidget(QString columnName, QWidget *parent): QWidget(parent), columnName(columnName)
 {
     setMaximumWidth(COLUMN_WIDGET_WIDTH);
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum);
@@ -10,19 +9,27 @@ ColumnWidget::ColumnWidget(QString columnName, QWidget *parent): QWidget(parent)
     removeColumnPushButton = new QPushButton("Remove column", this);
     renameColumnPushButton = new QPushButton("Rename column", this);
     addTaskPushButton = new QPushButton("Add Task");
-    tasksListView = new QListView(this);
+    tasksListView = new CustomTaskListView(this);
+    columnDataModel = new ColumnDataModel(this);
 
-    taskListModel = new QStringListModel();
-    this->columnName = columnName;
+    tasksListView->setModel(columnDataModel);
 
-    ProjectWindow* projectWindow = qobject_cast<ProjectWindow*>(QWidget::window());
-    QObject::connect(removeColumnPushButton, SIGNAL(clicked()), projectWindow, SLOT(removeColumnPushButtonClick()));
-    QObject::connect(renameColumnPushButton, SIGNAL(clicked()), projectWindow, SLOT(renameColumnPushButtonClick()));
-    QObject::connect(addTaskPushButton, SIGNAL(clicked()), projectWindow, SLOT(addTaskPushButtonClick()));
-
-    tasksListView->setDragEnabled(true);
-    tasksListView->setAcceptDrops(true);
-    tasksListView->setModel(taskListModel);
+    ProjectWindow* projectWindow = qobject_cast<ProjectWindow*>(this->window());
+    QObject::connect(removeColumnPushButton, SIGNAL(clicked()), projectWindow, SLOT(removeColumnPushButtonClicked()));
+    QObject::connect(renameColumnPushButton, SIGNAL(clicked()), projectWindow, SLOT(renameColumnPushButtonClicked()));
+    QObject::connect(addTaskPushButton, SIGNAL(clicked()), projectWindow, SLOT(addTaskPushButtonClicked()));
+    QObject::connect(tasksListView,
+                     SIGNAL(taskChosen(ColumnWidget*, QModelIndex&, QPoint&)),
+                     projectWindow,
+                     SLOT(taskChosenClicked(ColumnWidget*, QModelIndex&, QPoint&)));
+    QObject::connect(tasksListView,
+                     SIGNAL(taskDragged(ColumnWidget*, QModelIndex&)),
+                     projectWindow,
+                     SLOT(taskDraggedClicked(ColumnWidget*, QModelIndex&)));
+    QObject::connect(tasksListView,
+                     SIGNAL(taskIsDropping(ColumnWidget*, QModelIndex&)),
+                     projectWindow,
+                     SLOT(taskIsDroppingClicked(ColumnWidget*, QModelIndex&)));
 
     columnNameLabel->setAlignment(Qt::AlignCenter);
 
@@ -32,19 +39,14 @@ ColumnWidget::ColumnWidget(QString columnName, QWidget *parent): QWidget(parent)
     layout()->addWidget(renameColumnPushButton);
     layout()->addWidget(removeColumnPushButton);
     layout()->addWidget(tasksListView);
+}
 
-//    tasksListView->setDragEnabled(true);
-//    tasksListView->setAcceptDrops(true);
-//    QStringListModel *model = new QStringListModel();
-//    tasksListView->setModel(model);
-//    tasksListView->model()->insertRow(tasksListView->model()->rowCount());
-//    QStringList list;
-//    list << "11111111111111111111";
-//    for(int i = 0; i < 20; i++){
-
-//        list.append("2\n\1\1");
-//    }
-//    model->setStringList(list);
+ColumnWidget::ColumnWidget(QString columnName, Tasks tasks, QWidget *parent): ColumnWidget(columnName, parent)
+{
+    for(TaskUIntT i = 0; i < tasks.size(); i++) {
+        TaskInfo taskInfo = tasks.at(i);
+        pushFrontTask(taskInfo.description, taskInfo.datetimeCreated, taskInfo.deadline);
+    }
 }
 
 void ColumnWidget::setColumnName(QString name)
@@ -55,9 +57,54 @@ void ColumnWidget::setColumnName(QString name)
 
 void ColumnWidget::pushFrontTask(QString &description, QString &datetimeCreated, QString &deadline)
 {
-    QString task = QString(description + "\n" +
+    QString value = QString(description + "\n" +
                            "created at: " + datetimeCreated +
                            (deadline.isEmpty() ? "": "\ndeadline: " + deadline));
 
-    taskListModel->stringList().prepend(task);
+    if(columnDataModel->insertRow(columnDataModel->rowCount())) {
+        QModelIndex index = columnDataModel->index(columnDataModel->rowCount() - 1, 0);
+        columnDataModel->setData(index, value);
+    }
+
+    datetimeCreatedList.append(datetimeCreated);
+}
+
+void ColumnWidget::removeTask(QModelIndex &index)
+{
+    columnDataModel->removeRow(index.row());
+    datetimeCreatedList.removeAt(index.row());
+}
+
+void ColumnWidget::updateTaskAt(QModelIndex& index, QString &description, QString &deadline)
+{
+    QString value = QString(description + "\n" +
+                           "created at: " + datetimeCreatedList.at(index.row()) +
+                           (deadline.isEmpty() ? "": "\ndeadline: " + deadline));
+
+    columnDataModel->setData(index, value);
+}
+
+QString ColumnWidget::getTaskDatetimeCreatedAt(TaskUIntT pos)
+{
+    return datetimeCreatedList.at(pos);
+}
+
+void ColumnWidget::removeTaskDatetimeCreatedAt(TaskUIntT pos)
+{
+    datetimeCreatedList.removeAt(pos);
+}
+
+void ColumnWidget::updatePosTaskDatetimeCreatedAt(TaskUIntT posFrom, TaskUIntT posTo)
+{
+    datetimeCreatedList.move(posFrom, posTo);
+}
+
+void ColumnWidget::addTaskDatetimeCreatedAt(TaskUIntT pos, QString datetimeCreated)
+{
+    datetimeCreatedList.insert(pos, datetimeCreated);
+}
+
+QString ColumnWidget::getColumnWidgetName()
+{
+    return columnName;
 }

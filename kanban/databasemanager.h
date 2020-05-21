@@ -1,10 +1,9 @@
 #ifndef DATABASEMANAGER_H
 #define DATABASEMANAGER_H
 
-
+#include "config.h"
 #include "singleton.h"
 #include "schemacreatequery.h"
-#include "taskmanager.h"
 
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlTableModel>
@@ -23,46 +22,60 @@ class DatabaseManager: public Singleton<DatabaseManager>
 {
 
 public:
+    enum class OpStatus {
+        Success,
+        Failure,
+        TableFull,
+        NoBoard,
+        NoColumn,
+        NoTask,
+        LongBoardName,
+        LongColumnName,
+        LongTaskDescription,
+        LongBoardDescription
+    };
+
     DatabaseManager();
 
-    bool insertBoard(QString& boardName, QString* description = nullptr, QString* pathToBackground = nullptr);
-    bool updateBoard(QString& boardName, QString* newBoardName, QString* newDescription = nullptr, QString* newPathToBackground = nullptr);
-    bool deleteBoard(QString& boardName);
+    OpStatus insertBoard(QString& boardName, QString* description = nullptr, QString* pathToBackground = nullptr);
+    OpStatus updateBoard(QString& boardName, QString* newBoardName = nullptr, QString* newDescription = nullptr, QString* newPathToBackground = nullptr);
+    OpStatus deleteBoard(QString& boardName);
     void selectBoards(QSqlTableModel& model);
     QSqlRecord selectBoard(QString& boardName);
 
-    bool insertBackColumn(ColumnKey& columnKey);
-    bool insertColumn(ColumnKey& columnKey, quint8 pos);
-    bool updateColumnPosInBoard(ColumnKey& columnKey, quint8& newPos);
-    bool updateColumnName(ColumnKey& columnKey, QString& newColumnName);
-    bool deleteColumn(ColumnKey& columnKey);
+    OpStatus insertBackColumn(ColumnKey& columnKey);
+    OpStatus updateColumnPosInBoard(ColumnKey& columnKey, ColumnUIntT& newPos);
+    OpStatus updateColumnName(ColumnKey& columnKey, QString& newColumnName);
+    OpStatus deleteColumn(ColumnKey& columnKey);
     void selectColumnsByBoardName(QSqlTableModel& model, QString& boardName);
     QSqlRecord selectColumn(ColumnKey& columnKey);
-    quint8 findMaxColumnPosInBoard(QString boardName);
+    ColumnUIntT findMaxColumnPosInBoard(QString boardName);
 
-    bool insertBackTask(TaskKey& taskKey, QString& description, QString* deadline = nullptr);
-    bool insertTask(TaskKey &taskKey, quint8 pos, QString& description, QString* deadline = nullptr);
-    bool updateTaskPosInColumn(TaskKey& taskKey, quint8& newPos);
-    bool moveTaskToOtherColumn(TaskKey& taskKey, QString& newColumnName, quint8& newPos);
-    bool updateTaskDescription(TaskKey& taskKey, QString& newDescription);
-    bool deleteTask(TaskKey& taskKey);
+    OpStatus insertBackTask(TaskKey& taskKey, QString& description, QString* deadline = nullptr);
+    OpStatus deleteTask(TaskKey& taskKey);
+    OpStatus updateTaskPosInColumn(TaskKey& taskKey, TaskUIntT& newPos);
+    OpStatus moveTaskToOtherColumn(TaskKey& taskKey, QString& newColumnName, TaskUIntT newPos = 0); // Если 0, то добавить в конец.
+    OpStatus updateTask(TaskKey& taskKey, QString& newDescription, QString *deadline = nullptr);
     QSqlRecord selectTask(TaskKey& taskKey);
-    quint8 findMaxTaskPosInColumn(ColumnKey& columnKey);
+    TaskUIntT findMaxTaskPosInColumn(ColumnKey& columnKey);
     void selectTasksByColumn(QSqlTableModel &model, ColumnKey &columnKey);
 
-    static void foreachRecordInModel(QSqlTableModel& model, std::function<void(QSqlRecord& record)> callback);
-    static void selectFromTable(QSqlTableModel& model,QString tableName, std::function<void()> callback);
+    void foreachRecordInModel(QSqlTableModel& model, std::function<void(QSqlRecord& record)> callback);
+    void selectFromTable(QSqlTableModel& model,QString tableName, std::function<void()> callback);
 
+    QSqlDatabase database;
 private:
-    bool updateColumnPos(ColumnKey& columnKey, quint8& newPos);
-    bool updateTaskPos(TaskKey& taskKey, quint8 pos);
-    bool doTransaction(std::function<bool()> callback);
+    OpStatus insertColumn(ColumnKey& columnKey, ColumnUIntT pos);
+    OpStatus insertTask(TaskKey &taskKey, TaskUIntT pos, QString& description, QString* deadline = nullptr);
+    bool updateColumnPos(ColumnKey& columnKey, ColumnUIntT& newPos);
+    bool updateTaskPos(TaskKey& taskKey, TaskUIntT pos);
+    OpStatus doTransaction(std::function<OpStatus()> callback);
 
     static void moveRowsByOne(QSqlTableModel& model, bool direction); // true - увеличить, false - уменьшить
     static void bindColumnKey(QSqlQuery& query, ColumnKey& columnKey);
     static void bindTaskKey(QSqlQuery& query, TaskKey& taskKey);
 
-    QSqlDatabase database;
+    bool isTransaction;
 };
 
 #endif // DATABASEMANAGER_H

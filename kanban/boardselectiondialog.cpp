@@ -7,8 +7,13 @@ BoardSelectionDialog::BoardSelectionDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    model = new QStringListModel;
+
+    ui->boardsListView->setModel(model);
+    ui->boardsListView->setSelectionMode(QAbstractItemView::SingleSelection);
+
     QObject::connect(ui->goBackPushButton, SIGNAL(clicked()), this, SLOT(goBackPushButtonClick()));
-    QObject::connect(ui->applyChoicePushButton, SIGNAL(clicked()), this, SLOT(applyChoicePushButtonClick()));
+    QObject::connect(ui->boardsListView, SIGNAL(pressed(QModelIndex)), this, SLOT(listViewClick(QModelIndex)));
 }
 
 BoardSelectionDialog::~BoardSelectionDialog()
@@ -16,19 +21,38 @@ BoardSelectionDialog::~BoardSelectionDialog()
     delete ui;
 }
 
-void BoardSelectionDialog::goBackPushButtonClick()
+void BoardSelectionDialog::setListViewWithData(BoardList *boardList)
 {
-    emit reviewBoards();
+    QStringList list;
+    for(BoardUintT i = 0; i < boardList->size(); i++) {
+        QString text = boardList->at(i);
+        list.append(text);
+    }
+    model->setStringList(list);
 }
 
-void BoardSelectionDialog::applyChoicePushButtonClick()
+QString BoardSelectionDialog::getSelectedBoard()
 {
-    if (!ui->chosenBoardLineEdit->text().isEmpty()) {
-        emit openBoardWindow();
-    } else {
-        // To do:
-        // Добавить анимацию chosenBoardLineEdit менеджером анимации
+    return ui->chosenBoardLineEdit->text();
+}
+
+void BoardSelectionDialog::goBackPushButtonClick()
+{
+    emit reviewBoardsClick();
+}
+
+void BoardSelectionDialog::listViewClick(QModelIndex index)
+{
+    if (index.isValid()) {
+        ui->chosenBoardLineEdit->setText(model->data(index).toString());
     }
 }
 
-////    QObject::connect(timeLine, &QTimeLine::finished, timeLine, &QTimeLine::deleteLater);
+void BoardSelectionDialog::on_applyChoicePushButton_clicked()
+{
+    if (ui->chosenBoardLineEdit->text().isEmpty()) {
+        QMessageBox::information(this, this->windowTitle(), "No board was chosen.");
+    } else {
+        emit openExistingProjectWindowClick(ui->chosenBoardLineEdit->text());
+    }
+}

@@ -1,6 +1,7 @@
 #ifndef TASKMANAGER_H
 #define TASKMANAGER_H
 
+#include "config.h"
 #include "databasemanager.h"
 
 #include <QList>
@@ -9,52 +10,97 @@
 #include <QSqlTableModel>
 #include <QDateTime>
 #include <QSharedPointer>
+#include <QPair>
 
 struct BoardInfo {
     QString name;
-    QString description;
     QString pathToBackGround;
+    QString description;
+};
+
+class Cache
+{
+public:
+    Cache() {}
+
+    void cacheBoardInfo(BoardInfo boardInfo) {
+        this->boardInfo = boardInfo;
+    }
+    BoardInfo getCachedBoardInfo() {
+        return boardInfo;
+    }
+    QString getCachedBoardName() {
+        return boardInfo.name;
+    }
+
+private:
+    BoardInfo boardInfo;
 };
 
 struct ColumnInfo {
     QString name;
     QString boardName;
-    quint8 pos;
+    ColumnUIntT pos;
 };
 
 struct TaskInfo {
     QString datetimeCreated;
     QString description;
     QString deadline;
-    quint8 pos;
+    TaskUIntT pos;
+};
+
+struct Column;
+
+using SharedPtrBoardInfoList = QSharedPointer<QList<BoardInfo>>;
+using SharedPtrColumnInfoList = QSharedPointer<QList<ColumnInfo>>;
+using SharedPtrTaskInfoList = QSharedPointer<QList<TaskInfo>>;
+using SharedPtrBoardList = QSharedPointer<QList<QString>>;
+using BoardList = QList<QString>;
+using Tasks = QVector<TaskInfo>;
+using Columns = QList<Column>;
+
+struct Column {
+    ColumnInfo columnInfo;
+    Tasks tasks;
+};
+
+struct BoardLoad {
+    BoardInfo boardInfo;
+    Columns columns;
 };
 
 class TaskManager
 {
 public:
+    using OpStatus = DatabaseManager::OpStatus;
+
     TaskManager();
 
-    QList<BoardInfo> getBoardsInfos();
-    QSharedPointer<BoardInfo> getBoard(QString name);
-    void addBoard(QString name, QString descriprion = "", QString pathToBackGround = "");
-    void updateBoard(QString name, QString* newName, QString* newDescription = nullptr, QString* newPathToBackground = nullptr);
-    void removeBoard(QString name);
+    QSharedPointer<BoardLoad> loadBoard();
 
-    QList<ColumnInfo> getColumnInfosByBoardName(QString boardName);
+    SharedPtrBoardList getBoards();
+    QSharedPointer<BoardInfo> getBoardInfo(QString name = "");
+    OpStatus addBoard(QString name, QString descriprion = "", QString pathToBackGround = "");
+    OpStatus updateBoard(QString newName = "", QString newDescription = "", QString newPathToBackground = "");
+    OpStatus removeBoard();
+
+    SharedPtrColumnInfoList getColumnInfosByBoardName(QString boardName);
     QSharedPointer<ColumnInfo> getColumn(QString name);
-    void addColumn(QString name);
-    void updateColumnPos(QString name, quint8 newPos);
-    void renameColumn(QString name, QString& newColumnName);
-    void removeColumn(QString name);
+    OpStatus addColumn(QString name);
+    OpStatus updateColumnPos(QString name, ColumnUIntT newPos);
+    OpStatus renameColumn(QString name, QString& newColumnName);
+    OpStatus removeColumn(QString name);
 
-    QList<TaskInfo> getTaskInfosByBoardColumn(QString boardName, QString columnName);
-    QString addTask(QString columnName, QString description, QString deadline = "");
-    void updateTaskPosInColumn(QString columnName, QString datetimeCreated, quint8& newPos);
-    void updateTaskDescription(QString columnName, QString datetimeCreated, QString newDescription);
-    void moveTaskToOtherColumn(QString columnName, QString datetimeCreated, QString& newColumnName, quint8& newPos);
-    void removeTask(QString columnName, QString datetimeCreated);
+    SharedPtrTaskInfoList getTaskInfosByBoardAndColumn(QString boardName, QString columnName);
+    OpStatus addTask(QString columnName, QString& datetimeCreated, QString description, QString deadline = "");
+    OpStatus updateTaskPosInColumn(QString columnName, QString datetimeCreated, TaskUIntT& newPos);
+    OpStatus updateTask(QString columnName, QString datetimeCreated, QString newDescription, QString deadline = "");
+    OpStatus moveTaskToOtherColumn(QString columnName, QString datetimeCreated, QString& newColumnName, TaskUIntT& newPos);
+    OpStatus removeTask(QString columnName, QString datetimeCreated);
 
     QString currentBoardName;
+    Cache cache;
 };
 
 #endif // TASKMANAGER_H

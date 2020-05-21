@@ -1,59 +1,91 @@
 #include "taskmanager.h"
-#include <QDebug>
 
 TaskManager::TaskManager()
 {
-
+    DatabaseManager::instance();
 }
 
-QList<BoardInfo> TaskManager::getBoardsInfos()
+QSharedPointer<BoardLoad> TaskManager::loadBoard()
+{
+    BoardLoad *boardLoad= new BoardLoad;
+    boardLoad->boardInfo = *(getBoardInfo(currentBoardName).data());
+
+    SharedPtrColumnInfoList sharedPtrColumnInfoList = getColumnInfosByBoardName(currentBoardName);
+
+    if (sharedPtrColumnInfoList.data()) {
+        for(ColumnUIntT i = 0; i < sharedPtrColumnInfoList.data()->size(); i++) {
+            Column column;
+            column.columnInfo = sharedPtrColumnInfoList.data()->at(i);
+
+            SharedPtrTaskInfoList sharedPtrTaskInfoList = getTaskInfosByBoardAndColumn(currentBoardName, column.columnInfo.name);
+
+            if (sharedPtrTaskInfoList .data()) {
+                for(TaskUIntT j = 0; j < sharedPtrTaskInfoList.data()->size(); j++) {
+                    column.tasks.push_back(sharedPtrTaskInfoList.data()->at(j));
+                }
+            }
+            boardLoad->columns.push_back(column);
+        }
+    }
+
+    cache.cacheBoardInfo(boardLoad->boardInfo);
+
+    return QSharedPointer<BoardLoad>(boardLoad);
+}
+
+SharedPtrBoardList TaskManager::getBoards()
 {
     QSqlTableModel model;
     DatabaseManager::instance().selectBoards(model);
 
-    QList<BoardInfo> boardsInfos;
-    DatabaseManager::foreachRecordInModel(model, [&](QSqlRecord& record){
-        BoardInfo boardInfo;
-        boardInfo.name = record.value("name").toString();
-        boardInfo.pathToBackGround = record.value("pathToBackGround").toString();
-        boardInfo.description = record.value("description").toString();
-
-        boardsInfos.push_back(boardInfo);
+    BoardList *boards = new BoardList;
+    DatabaseManager::instance().foreachRecordInModel(model, [&](QSqlRecord& record){
+        QString board = record.value("name").toString();
+        boards->push_back(board);
     });
-    return boardsInfos;
+    return SharedPtrBoardList(boards);
 }
 
-QSharedPointer<BoardInfo> TaskManager::getBoard(QString name)
+QSharedPointer<BoardInfo> TaskManager::getBoardInfo(QString name)
 {
-    QSqlRecord record = DatabaseManager::instance().selectBoard(name);
-
-    if (record.value("name").toString().isEmpty()) {
-        return QSharedPointer<BoardInfo>();
-    }
-
     BoardInfo* boardInfo = new BoardInfo;
-    boardInfo->name = record.value("name").toString();
-    boardInfo->pathToBackGround = record.value("pathToBackGround").toString();
-    boardInfo->description = record.value("description").toString();
+
+    if (cache.getCachedBoardName() == name or name.isEmpty()) {
+        BoardInfo cached= cache.getCachedBoardInfo();
+        boardInfo->name = cached.name;
+        boardInfo->pathToBackGround = cached.pathToBackGround;
+        boardInfo->description = cached.description;
+    }
+    else {
+        QSqlRecord record = DatabaseManager::instance().selectBoard(name);
+
+        if (record.value("name").toString().isEmpty()) {
+            return QSharedPointer<BoardInfo>();
+        }
+
+        boardInfo->name = record.value("name").toString();
+        boardInfo->pathToBackGround = record.value("pathToBackGround").toString();
+        boardInfo->description = record.value("description").toString();
+    }
 
     return QSharedPointer<BoardInfo>(boardInfo);
 }
 
-QList<ColumnInfo> TaskManager::getColumnInfosByBoardName(QString boardName)
+SharedPtrColumnInfoList TaskManager::getColumnInfosByBoardName(QString boardName)
 {
     QSqlTableModel model;
     DatabaseManager::instance().selectColumnsByBoardName(model, boardName);
 
-    QList<ColumnInfo> columnInfos;
-    DatabaseManager::foreachRecordInModel(model, [&](QSqlRecord& record){
+    QList<ColumnInfo> *columnInfos = new QList<ColumnInfo>;
+    DatabaseManager::instance().foreachRecordInModel(model, [&](QSqlRecord& record){
         ColumnInfo columnInfo;
         columnInfo.name = record.value("name").toString();
         columnInfo.boardName = record.value("board_name").toString();
-        columnInfo.pos = record.value("order_num").toUInt();
+        columnInfo.pos = record.value("order_num").toUInt() - 1;
 
-        columnInfos.push_back(columnInfo);
+        columnInfos->push_back(columnInfo);
     });
-    return columnInfos;
+    return SharedPtrColumnInfoList(columnInfos);
 }
 
 QSharedPointer<ColumnInfo> TaskManager::getColumn(QString name)
@@ -74,96 +106,120 @@ QSharedPointer<ColumnInfo> TaskManager::getColumn(QString name)
     return QSharedPointer<ColumnInfo>(columnInfo);
 }
 
-QList<TaskInfo> TaskManager::getTaskInfosByBoardColumn(QString boardName, QString columnName)
+SharedPtrTaskInfoList TaskManager::getTaskInfosByBoardAndColumn(QString boardName, QString columnName)
 {
     QSqlTableModel model;
     ColumnKey columnKey(boardName, columnName);
     DatabaseManager::instance().selectTasksByColumn(model, columnKey);
 
-    QList<TaskInfo> taskInfos;
-    DatabaseManager::foreachRecordInModel(model, [&](QSqlRecord& record){
+    QList<TaskInfo> *taskInfos = new QList<TaskInfo>;
+    DatabaseManager::instance().foreachRecordInModel(model, [&](QSqlRecord& record){
         TaskInfo taskInfo;
         taskInfo.datetimeCreated = record.value("datetime_created").toString();
         taskInfo.deadline = record.value("deadline").toString();
         taskInfo.description= record.value("description").toString();
-        taskInfo.pos = record.value("order_num").toUInt();
+        taskInfo.pos = record.value("order_num").toUInt() -1;
 
-        taskInfos.push_back(taskInfo);
+        taskInfos->push_back(taskInfo);
     });
-    return taskInfos;
+    return SharedPtrTaskInfoList(taskInfos);
 }
 
-void TaskManager::addBoard(QString name, QString descriprion, QString pathToBackGround)
+TaskManager::OpStatus TaskManager::addBoard(QString name, QString descriprion, QString pathToBackGround)
 {
-    DatabaseManager::instance().insertBoard(name, descriprion.isEmpty()? nullptr: &descriprion, pathToBackGround.isEmpty()? nullptr: &pathToBackGround);
+    TaskManager::OpStatus status = DatabaseManager::instance().insertBoard(name,
+                                            descriprion.isEmpty()? nullptr: &descriprion,
+                                            pathToBackGround.isEmpty()? nullptr: &pathToBackGround);
+
+    if (status == TaskManager::OpStatus::Success) {
+        BoardInfo boardInfo;
+        boardInfo.name = name;
+        boardInfo.description = descriprion;
+        boardInfo.pathToBackGround = pathToBackGround;
+        cache.cacheBoardInfo(boardInfo);
+
+        return OpStatus::Success;
+    }
+    return status;
 }
 
-void TaskManager::addColumn(QString name)
+TaskManager::OpStatus TaskManager::addColumn(QString name)
 {
     ColumnKey columnKey(currentBoardName, name);
-    DatabaseManager::instance().insertBackColumn(columnKey);
+    return DatabaseManager::instance().insertBackColumn(columnKey);
 }
 
-QString TaskManager::addTask(QString columnName, QString description, QString deadline)
+TaskManager::OpStatus TaskManager::addTask(QString columnName, QString& datetimeCreated, QString description, QString deadline)
 {
     QDateTime datetime = QDateTime::currentDateTime();
-    QString datetimeCreated = datetime.toString("yy-MM-dd hh:mm::ss");
+    datetimeCreated = datetime.toString("yy-MM-dd hh:mm:ss");
 
     TaskKey taskKey(currentBoardName, columnName, datetimeCreated);
-    DatabaseManager::instance().insertBackTask(taskKey, description, deadline.isEmpty()? nullptr: &deadline);
-
-    return datetimeCreated;
+    return DatabaseManager::instance().insertBackTask(taskKey, description, deadline.isEmpty()? nullptr: &deadline);
 }
 
-void TaskManager::updateBoard(QString name, QString *newName, QString *newDescription, QString *newPathToBackground)
+TaskManager::OpStatus TaskManager::updateBoard(QString newName, QString newDescription, QString newPathToBackground)
 {
-    DatabaseManager::instance().updateBoard(name, newName, newDescription, newPathToBackground);
+    TaskManager::OpStatus status = DatabaseManager::instance().updateBoard(currentBoardName,
+                                                   newName.isEmpty() ? nullptr : &newName,
+                                                   newDescription.isEmpty() ? nullptr : &newDescription,
+                                                   newPathToBackground.isEmpty() ? nullptr : &newPathToBackground);
+    if (status == TaskManager::OpStatus::Success) {
+        BoardInfo boardInfo;
+        boardInfo.name = newName;
+        boardInfo.description = newDescription;
+        boardInfo.pathToBackGround = newPathToBackground;
+        cache.cacheBoardInfo(boardInfo);
+
+        return OpStatus::Success;
+    }
+    return status;
 }
 
-void TaskManager::updateColumnPos(QString name, quint8 newPos)
+TaskManager::OpStatus TaskManager::updateColumnPos(QString name, ColumnUIntT newPos)
 {
     ColumnKey columnKey(currentBoardName, name);
-    DatabaseManager::instance().updateColumnPosInBoard(columnKey, newPos);
+    return DatabaseManager::instance().updateColumnPosInBoard(columnKey, newPos);
 }
 
-void TaskManager::renameColumn(QString name, QString &newColumnName)
+TaskManager::OpStatus TaskManager::renameColumn(QString name, QString &newColumnName)
 {
     ColumnKey columnKey(currentBoardName, name);
-    DatabaseManager::instance().updateColumnName(columnKey, newColumnName);
+    return DatabaseManager::instance().updateColumnName(columnKey, newColumnName);
 }
 
-void TaskManager::updateTaskDescription(QString columnName, QString datetimeCreated, QString newDescription)
+TaskManager::OpStatus TaskManager::updateTask(QString columnName, QString datetimeCreated, QString newDescription, QString deadline)
 {
     TaskKey taskKey(currentBoardName, columnName, datetimeCreated);
-    DatabaseManager::instance().updateTaskDescription(taskKey, newDescription);
+    return DatabaseManager::instance().updateTask(taskKey, newDescription, deadline.isEmpty() ? nullptr: &deadline);
 }
 
-void TaskManager::updateTaskPosInColumn(QString columnName, QString datetimeCreated, quint8 &newPos)
+TaskManager::OpStatus TaskManager::updateTaskPosInColumn(QString columnName, QString datetimeCreated, TaskUIntT &newPos)
 {
     TaskKey taskKey(currentBoardName, columnName, datetimeCreated);
-    DatabaseManager::instance().updateTaskPosInColumn(taskKey, newPos);
+    return DatabaseManager::instance().updateTaskPosInColumn(taskKey, newPos);
 }
 
-void TaskManager::moveTaskToOtherColumn(QString columnName, QString datetimeCreated, QString &newColumnName, quint8 &newPos)
+TaskManager::OpStatus TaskManager::moveTaskToOtherColumn(QString columnName, QString datetimeCreated, QString &newColumnName, TaskUIntT &newPos)
 {
     TaskKey taskKey(currentBoardName, columnName, datetimeCreated);
-    DatabaseManager::instance().moveTaskToOtherColumn(taskKey, newColumnName, newPos);
+    return DatabaseManager::instance().moveTaskToOtherColumn(taskKey, newColumnName, newPos);
 }
 
-void TaskManager::removeBoard(QString name)
+TaskManager::OpStatus TaskManager::removeBoard()
 {
-    DatabaseManager::instance().deleteBoard(name);
+    return DatabaseManager::instance().deleteBoard(currentBoardName);
 }
 
-void TaskManager::removeColumn(QString name)
+TaskManager::OpStatus TaskManager::removeColumn(QString name)
 {
     ColumnKey columnKey(currentBoardName, name);
-    DatabaseManager::instance().deleteColumn(columnKey);
+    return DatabaseManager::instance().deleteColumn(columnKey);
 }
 
-void TaskManager::removeTask(QString columnName, QString datetimeCreated)
+TaskManager::OpStatus TaskManager::removeTask(QString columnName, QString datetimeCreated)
 {
     TaskKey taskKey(currentBoardName, columnName, datetimeCreated);
-    DatabaseManager::instance().deleteTask(taskKey);
+    return DatabaseManager::instance().deleteTask(taskKey);
 }
 

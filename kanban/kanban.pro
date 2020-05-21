@@ -2,7 +2,7 @@ QT       += core gui sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-CONFIG += c++17
+CONFIG += c++17 -Wextra -pedantic
 
 # The following define makes your compiler emit warnings if you use
 # any Qt feature that has been marked deprecated (the exact warnings
@@ -16,37 +16,46 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    animationmanager.cpp \
+    boarddetailsdialog.cpp \
     boardselectiondialog.cpp \
     boardwidget.cpp \
+    columndatamodel.cpp \
     columnwidget.cpp \
     controller.cpp \
     createprojectdialog.cpp \
+    custommenu.cpp \
+    customtasklistview.cpp \
     databasemanager.cpp \
     main.cpp \
     projectreviewdialog.cpp \
     projectwindow.cpp \
     schemacreatequery.cpp \
     taskinputdialog.cpp \
-    taskmanager.cpp
+    taskmanager.cpp \
+    unfinishedkeeper.cpp
 
 HEADERS += \
-    animationmanager.h \
+    boarddetailsdialog.h \
     boardselectiondialog.h \
     boardwidget.h \
+    columndatamodel.h \
     columnwidget.h \
     config.h \
     controller.h \
     createprojectdialog.h \
+    custommenu.h \
+    customtasklistview.h \
     databasemanager.h \
     projectreviewdialog.h \
     projectwindow.h \
     schemacreatequery.h \
     singleton.h \
     taskinputdialog.h \
-    taskmanager.h
+    taskmanager.h \
+    unfinishedkeeper.h
 
 FORMS += \
+    boarddetailsdialog.ui \
     boardselectiondialog.ui \
     createprojectdialog.ui \
     projectreviewdialog.ui \
@@ -60,3 +69,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 RESOURCES += \
     resource.qrc
+
+DISTFILES +=

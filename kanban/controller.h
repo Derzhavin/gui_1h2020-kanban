@@ -8,12 +8,17 @@
 #include "createprojectdialog.h"
 #include "boardselectiondialog.h"
 #include "taskinputdialog.h"
+#include "boarddetailsdialog.h"
 
 #include "ui_projectreviewdialog.h"
 #include "ui_projectwindow.h"
 #include "ui_boardselectiondialog.h"
 #include "ui_createprojectdialog.h"
 #include "ui_taskinputdialog.h"
+#include "ui_boarddetailsdialog.h"
+
+#include "custommenu.h"
+#include "unfinishedkeeper.h"
 
 #include <functional>
 #include <QGuiApplication>
@@ -21,6 +26,8 @@
 #include <QObject>
 #include <QMessageBox>
 #include <QInputDialog>
+#include <QMenu>
+#include <QDir>
 
 class Controller: public QObject
 {
@@ -31,30 +38,38 @@ public:
     void run();
     void centerWidget(QWidget *widget);
 
-    void openColumnNameInputDialog(std::function<void(QString& columnName)> callback);
-    void openTaskInputDialog(std::function<void(QString& description, QString& deadline)> callback);
+    void openColumnInputDialog(std::function<bool(QString& columnName)> callback);
+    void openTaskInputDialog(std::function<bool(QString &, QString &)> callback);
 
 public slots:
     void openBoard();
     void createBoard();
     void reviewBoards();
     void openBoardWindow();
+    void openExistingProjectWindow(QString boardName);
+
+    void showBoardDetails();
+    void removeBoard();
 
     void addColumn();
     void removeColumn(ColumnWidget *columnWidget);
     void renameColumn(ColumnWidget *columnWidget);
 
     void addTask(ColumnWidget *columnWidget);
+    void taskChosen(ColumnWidget* columnWidget, QModelIndex& index, QPoint &clickPos);
+    void taskDragged(ColumnWidget* columnWidget, QModelIndex& index);
+    bool taskIsDropping(ColumnWidget* columnWidgetTo, QModelIndex& indexTo);
 
 private:
     ProjectWindow projectWindow;
     ProjectReviewDialog projectReviewDialog;
     CreateProjectDialog createProjectDialog;
     BoardSelectionDialog boardSelectDialog;
-    TaskInputDialog taskInputdialog;
+    TaskInputDialog taskInputDialog;
+    BoardDetailsDialog boardDetailsDialog;
 
     TaskManager taskManager;
-//    BoardModel model;
+    UnfinishedKeeper unfinishedKeeper;
 };
 
 #endif // CONTROLLER_H
