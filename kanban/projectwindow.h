@@ -26,28 +26,33 @@ public:
     void setBoardWithData(BoardLoad *boardLoad);
 
 public slots:
-    void goToBoardsPushButtonClick();
+    void goToBoardsPushButtonClicked();
 
-    void addColumnToolButtonClick();
-    void removeColumnPushButtonClick();
-    void renameColumnPushButtonClick();
+    void addColumnToolButtonClicked();
+    void removeColumnPushButtonClicked();
+    void renameColumnPushButtonClicked();
 
-    void addTaskPushButtonClick();
-    void taskChosenClick(ColumnWidget *columnWidget, QModelIndex &index, QPoint& clickPos);
+    void taskChosenClicked(ColumnWidget* columnWidgdet, QModelIndex& index, QPoint& pos);
+    void addTaskPushButtonClicked();
+    void taskDraggedClicked(ColumnWidget* columnWidget, QModelIndex& index);
+    bool taskIsDroppingClicked(ColumnWidget* columnWidget, QModelIndex& index);
+
+signals:
+    void reviewBoardsClick();
+
+    void removeBoardClick();
+
+    void taskChosenClick(ColumnWidget*, QModelIndex&, QPoint&);
+    void addColumnClick();
+    void removeColumnClick(ColumnWidget *columnWidget);
+    void renameColumnClick(ColumnWidget *columnWidget);
+
+    void addTaskClick(ColumnWidget *columnWidget);
     void taskDraggedClick(ColumnWidget* columnWidget, QModelIndex& index);
     bool taskIsDroppingClick(ColumnWidget* columnWidget, QModelIndex& index);
 
-signals:
-    void reviewBoards();
-
-    void addColumn();
-    void removeColumn(ColumnWidget *columnWidget);
-    void renameColumn(ColumnWidget *columnWidget);
-
-    void addTask(ColumnWidget *columnWidget);
-    void taskChosen(ColumnWidget *columnWidget, QModelIndex &index, QPoint& clickPos);
-    void taskDragged(ColumnWidget* columnWidget, QModelIndex& index);
-    bool taskIsDropping(ColumnWidget* columnWidget, QModelIndex& index);
+private slots:
+    void on_delBoardToolButton_clicked();
 
 private:
     QMouseEvent *lastMouseEvent;

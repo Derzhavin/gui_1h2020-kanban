@@ -1,8 +1,6 @@
 #include "boardselectiondialog.h"
 #include "ui_boardselectiondialog.h"
 
-#include <QDebug>
-
 BoardSelectionDialog::BoardSelectionDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::BoardSelectionDialog)
@@ -40,7 +38,7 @@ QString BoardSelectionDialog::getSelectedBoard()
 
 void BoardSelectionDialog::goBackPushButtonClick()
 {
-    emit reviewBoards();
+    emit reviewBoardsClick();
 }
 
 void BoardSelectionDialog::listViewClick(QModelIndex index)
@@ -55,6 +53,6 @@ void BoardSelectionDialog::on_applyChoicePushButton_clicked()
     if (ui->chosenBoardLineEdit->text().isEmpty()) {
         QMessageBox::information(this, this->windowTitle(), "No board was chosen.");
     } else {
-        emit openExistingProjectWindow(ui->chosenBoardLineEdit->text());
+        emit openExistingProjectWindowClick(ui->chosenBoardLineEdit->text());
     }
 }

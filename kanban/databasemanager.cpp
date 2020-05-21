@@ -1,5 +1,4 @@
 #include "databasemanager.h"
-#include <QDebug>
 
 DatabaseManager::DatabaseManager(): Singleton<DatabaseManager>(*this), isTransaction(false)
 {
@@ -9,12 +8,14 @@ DatabaseManager::DatabaseManager(): Singleton<DatabaseManager>(*this), isTransac
         QString script;
 
         QFile file(DB_CREATE_SCRIPT_PATH);
-        if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-               return;
-
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            QMessageBox::critical(nullptr, "", DB_FAIL_MSG);
+            return;
+        }
         while (!file.atEnd()) {
             script += file.readLine();
         }
+        file.close();
 
         SchemaCreateQuery schemaCreateQuery = SchemaCreateQuery(script);
 
@@ -106,13 +107,13 @@ DatabaseManager::OpStatus DatabaseManager::updateBoard(QString &boardName, QStri
     return query.exec() ? OpStatus::Success : OpStatus::Failure;
 }
 
-bool DatabaseManager::deleteBoard(QString &boardName)
+DatabaseManager::OpStatus DatabaseManager::deleteBoard(QString &boardName)
 {
     QSqlQuery query;
     query.prepare("DELETE FROM board WHERE name = ?");
     query.addBindValue(boardName);
 
-    return query.exec();
+    return query.exec() ? OpStatus::Success : OpStatus::Failure;
 }
 
 void DatabaseManager::selectBoards(QSqlTableModel& model)

@@ -7,11 +7,9 @@
 #include "columndatamodel.h"
 #include "taskmanager.h"
 
-#include <QListView>
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QLabel>
-#include <QHBoxLayout>
 #include <QPushButton>
 #include <QString>
 #include <QObject>

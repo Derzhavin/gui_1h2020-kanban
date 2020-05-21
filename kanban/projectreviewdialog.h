@@ -21,8 +21,8 @@ public slots:
     void openBoardPushButtonClick();
 
 signals:
-    void createBoard();
-    void openBoard();
+    void createBoardClick();
+    void openBoardClick();
 
 private:
     Ui::ProjectReviewDialog *ui;

@@ -1,5 +1,4 @@
 #include "boardwidget.h"
-#include <QDebug>
 
 BoardWidget::BoardWidget(QWidget *parent): QWidget(parent)
 {

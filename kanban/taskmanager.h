@@ -11,7 +11,6 @@
 #include <QDateTime>
 #include <QSharedPointer>
 #include <QPair>
-#include <array>
 
 struct BoardInfo {
     QString name;
@@ -64,8 +63,8 @@ public:
     SharedPtrBoardList getBoards();
     QSharedPointer<BoardInfo> getBoard(QString name);
     OpStatus addBoard(QString name, QString descriprion = "", QString pathToBackGround = "");
-    OpStatus updateBoard(QString name, QString* newName, QString* newDescription = nullptr, QString* newPathToBackground = nullptr);
-    void removeBoard(QString name);
+    OpStatus updateBoard(QString* newName, QString* newDescription = nullptr, QString* newPathToBackground = nullptr);
+    OpStatus removeBoard();
 
     SharedPtrColumnInfoList getColumnInfosByBoardName(QString boardName);
     QSharedPointer<ColumnInfo> getColumn(QString name);

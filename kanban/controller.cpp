@@ -1,37 +1,38 @@
 #include "controller.h"
-#include <QDebug>
 
 Controller::Controller()
 {    
-    QObject::connect(&projectReviewDialog, SIGNAL(createBoard()), this, SLOT(createBoard()));
-    QObject::connect(&projectReviewDialog, SIGNAL(openBoard()), this, SLOT(openBoard()));
+    QObject::connect(&projectReviewDialog, SIGNAL(createBoardClick()), this, SLOT(createBoard()));
+    QObject::connect(&projectReviewDialog, SIGNAL(openBoardClick()), this, SLOT(openBoard()));
 
-    QObject::connect(&createProjectDialog, SIGNAL(reviewBoards()), this, SLOT(reviewBoards()));
-    QObject::connect(&createProjectDialog, SIGNAL(openBoardWindow()), this, SLOT(openBoardWindow()));
+    QObject::connect(&createProjectDialog, SIGNAL(reviewBoardsClick()), this, SLOT(reviewBoards()));
+    QObject::connect(&createProjectDialog, SIGNAL(openBoardWindowClick()), this, SLOT(openBoardWindow()));
 
-    QObject::connect(&boardSelectDialog, SIGNAL(reviewBoards()), this, SLOT(reviewBoards()));
+    QObject::connect(&boardSelectDialog, SIGNAL(reviewBoardsClick()), this, SLOT(reviewBoards()));
     QObject::connect(&boardSelectDialog,
-                     SIGNAL(openExistingProjectWindow(QString)),
+                     SIGNAL(openExistingProjectWindowClick(QString)),
                      this,
                      SLOT(openExistingProjectWindow(QString)));
 
-    QObject::connect(&projectWindow, SIGNAL(reviewBoards()), this, SLOT(reviewBoards()));
-    QObject::connect(&projectWindow, SIGNAL(addColumn()), this, SLOT(addColumn()));
-    QObject::connect(&projectWindow, SIGNAL(removeColumn(ColumnWidget*)), this, SLOT(removeColumn(ColumnWidget*)));
-    QObject::connect(&projectWindow, SIGNAL(renameColumn(ColumnWidget*)), this, SLOT(renameColumn(ColumnWidget*)));
-    QObject::connect(&projectWindow, SIGNAL(addTask(ColumnWidget*)), this, SLOT(addTask(ColumnWidget*)));
+    QObject::connect(&projectWindow, SIGNAL(reviewBoardsClick()), this, SLOT(reviewBoards()));
+    QObject::connect(&projectWindow, SIGNAL(addColumnClick()), this, SLOT(addColumn()));
+    QObject::connect(&projectWindow, SIGNAL(removeColumnClick(ColumnWidget*)), this, SLOT(removeColumn(ColumnWidget*)));
+    QObject::connect(&projectWindow, SIGNAL(renameColumnClick(ColumnWidget*)), this, SLOT(renameColumn(ColumnWidget*)));
+    QObject::connect(&projectWindow, SIGNAL(addTaskClick(ColumnWidget*)), this, SLOT(addTask(ColumnWidget*)));
     QObject::connect(&projectWindow,
-                     SIGNAL(taskChosen(ColumnWidget*, QModelIndex&, QPoint&)),
+                     SIGNAL(taskChosenClick(ColumnWidget*, QModelIndex&, QPoint&)),
                      this,
                      SLOT(taskChosen(ColumnWidget*, QModelIndex&, QPoint&)));
     QObject::connect(&projectWindow,
-                     SIGNAL(taskDragged(ColumnWidget*, QModelIndex&)),
+                     SIGNAL(taskDraggedClick(ColumnWidget*, QModelIndex&)),
                      this,
                      SLOT(taskDragged(ColumnWidget*, QModelIndex&)));
     QObject::connect(&projectWindow,
-                     SIGNAL(taskIsDropping(ColumnWidget*, QModelIndex&)),
+                     SIGNAL(taskIsDroppingClick(ColumnWidget*, QModelIndex&)),
                      this,
                      SLOT(taskIsDropping(ColumnWidget*, QModelIndex&)));
+
+    QObject::connect(&projectWindow, SIGNAL(removeBoardClick()), this, SLOT(removeBoard()));
 }
 
 void Controller::run()
@@ -101,13 +102,13 @@ void Controller::openBoard()
         boardSelectDialog.setListViewWithData(sharedPtrBoardList.data());
     }
 
-    boardSelectDialog.exec();
+    boardSelectDialog.show();
 }
 
 void Controller::createBoard()
 {
     qobject_cast<QDialog*>(sender())->close();
-    createProjectDialog.exec();
+    createProjectDialog.show();
 }
 
 void Controller::reviewBoards()
@@ -118,7 +119,7 @@ void Controller::reviewBoards()
         widget->close();
     }
 
-    projectReviewDialog.exec();
+    projectReviewDialog.show();
 }
 
 void Controller::openBoardWindow()
@@ -161,14 +162,12 @@ void Controller::openBoardWindow()
             QString msg =  "The board with this name is exist.";
             QMessageBox::information(&createProjectDialog,  createProjectDialog.windowTitle(), msg);
         }
-    } else {
-        // Обработка вызова, который пришёл от projectWindow
     }
 }
 
 void Controller::openExistingProjectWindow(QString boardName)
 {
-    boardSelectDialog.close();
+    qobject_cast<QDialog*>(sender())->close();
 
     taskManager.currentBoardName = boardName;
     QSharedPointer<BoardLoad> sharedPtrBoardLoad = taskManager.loadBoard();
@@ -178,6 +177,24 @@ void Controller::openExistingProjectWindow(QString boardName)
     sharedPtrBoardLoad.clear();
 
     projectWindow.show();
+}
+
+void Controller::removeBoard()
+{
+    QMessageBox::StandardButton reply = QMessageBox::question(&projectWindow,
+                                                              projectWindow.windowTitle(),
+                                                              "Do you realy want to remove this board?");
+    if (reply == QMessageBox::Yes) {
+        TaskManager::OpStatus status = taskManager.removeBoard();
+
+        if (status != TaskManager::OpStatus::Success) {
+            QMessageBox::information(&projectWindow,  projectWindow.windowTitle(), "Failed to remove board. Try again.");
+            return;
+        }
+
+        projectWindow.close();
+        projectReviewDialog.show();
+    }
 }
 
 void Controller::addColumn()

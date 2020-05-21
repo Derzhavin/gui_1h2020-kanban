@@ -1,5 +1,4 @@
 #include "columnwidget.h"
-#include <QDebug>
 
 ColumnWidget::ColumnWidget(QString columnName, QWidget *parent): QWidget(parent), columnName(columnName)
 {
@@ -16,21 +15,21 @@ ColumnWidget::ColumnWidget(QString columnName, QWidget *parent): QWidget(parent)
     tasksListView->setModel(columnDataModel);
 
     ProjectWindow* projectWindow = qobject_cast<ProjectWindow*>(this->window());
-    QObject::connect(removeColumnPushButton, SIGNAL(clicked()), projectWindow, SLOT(removeColumnPushButtonClick()));
-    QObject::connect(renameColumnPushButton, SIGNAL(clicked()), projectWindow, SLOT(renameColumnPushButtonClick()));
-    QObject::connect(addTaskPushButton, SIGNAL(clicked()), projectWindow, SLOT(addTaskPushButtonClick()));
+    QObject::connect(removeColumnPushButton, SIGNAL(clicked()), projectWindow, SLOT(removeColumnPushButtonClicked()));
+    QObject::connect(renameColumnPushButton, SIGNAL(clicked()), projectWindow, SLOT(renameColumnPushButtonClicked()));
+    QObject::connect(addTaskPushButton, SIGNAL(clicked()), projectWindow, SLOT(addTaskPushButtonClicked()));
     QObject::connect(tasksListView,
                      SIGNAL(taskChosen(ColumnWidget*, QModelIndex&, QPoint&)),
                      projectWindow,
-                     SLOT(taskChosenClick(ColumnWidget*, QModelIndex&, QPoint&)));
+                     SLOT(taskChosenClicked(ColumnWidget*, QModelIndex&, QPoint&)));
     QObject::connect(tasksListView,
                      SIGNAL(taskDragged(ColumnWidget*, QModelIndex&)),
                      projectWindow,
-                     SLOT(taskDraggedClick(ColumnWidget*, QModelIndex&)));
+                     SLOT(taskDraggedClicked(ColumnWidget*, QModelIndex&)));
     QObject::connect(tasksListView,
                      SIGNAL(taskIsDropping(ColumnWidget*, QModelIndex&)),
                      projectWindow,
-                     SLOT(taskIsDroppingClick(ColumnWidget*, QModelIndex&)));
+                     SLOT(taskIsDroppingClicked(ColumnWidget*, QModelIndex&)));
 
     columnNameLabel->setAlignment(Qt::AlignCenter);
 

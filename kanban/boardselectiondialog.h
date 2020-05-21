@@ -7,7 +7,6 @@
 #include <QMessageBox>
 #include <QStringListModel>
 #include <QDialog>
-#include <QList>
 
 namespace Ui {
 class BoardSelectionDialog;
@@ -30,8 +29,8 @@ public slots:
     void listViewClick(QModelIndex index);
 
 signals:
-    void reviewBoards();
-    void openExistingProjectWindow(QString boardName);
+    void reviewBoardsClick();
+    void openExistingProjectWindowClick(QString boardName);
 
 private slots:
     void on_applyChoicePushButton_clicked();

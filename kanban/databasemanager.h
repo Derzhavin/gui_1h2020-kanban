@@ -39,7 +39,7 @@ public:
 
     OpStatus insertBoard(QString& boardName, QString* description = nullptr, QString* pathToBackground = nullptr);
     OpStatus updateBoard(QString& boardName, QString* newBoardName, QString* newDescription = nullptr, QString* newPathToBackground = nullptr);
-    bool deleteBoard(QString& boardName);
+    OpStatus deleteBoard(QString& boardName);
     void selectBoards(QSqlTableModel& model);
     QSqlRecord selectBoard(QString& boardName);
 

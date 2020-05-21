@@ -1,16 +1,14 @@
 #include "projectwindow.h"
 #include "ui_projectwindow.h"
 
-#include <QDebug>
-
 ProjectWindow::ProjectWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
 
-    QObject::connect(ui->goToBoardsPushButton, SIGNAL(clicked()), this, SLOT(goToBoardsPushButtonClick()));
-    QObject::connect(ui->newColumnToolButton, SIGNAL(clicked()), this, SLOT(addColumnToolButtonClick()));
+    QObject::connect(ui->goToBoardsPushButton, SIGNAL(clicked()), this, SLOT(goToBoardsPushButtonClicked()));
+    QObject::connect(ui->newColumnToolButton, SIGNAL(clicked()), this, SLOT(addColumnToolButtonClicked()));
 }
 
 ProjectWindow::~ProjectWindow()
@@ -23,43 +21,48 @@ void ProjectWindow::setBoardWithData(BoardLoad *boardLoad)
     ui->boardWidget->setData(boardLoad);
 }
 
-void ProjectWindow::goToBoardsPushButtonClick()
+void ProjectWindow::goToBoardsPushButtonClicked()
 {
-    emit reviewBoards();
+    emit reviewBoardsClick();
 }
 
-void ProjectWindow::addColumnToolButtonClick()
+void ProjectWindow::addColumnToolButtonClicked()
 {
-    emit addColumn();
+    emit addColumnClick();
 }
 
-void ProjectWindow::removeColumnPushButtonClick()
+void ProjectWindow::removeColumnPushButtonClicked()
 {
-    emit removeColumn(qobject_cast<ColumnWidget*>(sender()->parent()));
+    emit removeColumnClick(qobject_cast<ColumnWidget*>(sender()->parent()));
 }
 
-void ProjectWindow::renameColumnPushButtonClick()
+void ProjectWindow::renameColumnPushButtonClicked()
 {
-    emit renameColumn(qobject_cast<ColumnWidget*>(sender()->parent()));
+    emit renameColumnClick(qobject_cast<ColumnWidget*>(sender()->parent()));
 }
 
-void ProjectWindow::addTaskPushButtonClick()
+void ProjectWindow::taskChosenClicked(ColumnWidget * columnWidgdet, QModelIndex &index, QPoint &pos)
 {
-    emit addTask(qobject_cast<ColumnWidget*>(sender()->parent()));
+    emit taskChosenClick(columnWidgdet, index, pos);
 }
 
-void ProjectWindow::taskChosenClick(ColumnWidget *columnWidget, QModelIndex &index, QPoint& clickPos)
+void ProjectWindow::addTaskPushButtonClicked()
 {
-    emit taskChosen(columnWidget, index, clickPos);
+    emit addTaskClick(qobject_cast<ColumnWidget*>(sender()->parent()));
 }
 
-void ProjectWindow::taskDraggedClick(ColumnWidget *columnWidget, QModelIndex &index)
+void ProjectWindow::taskDraggedClicked(ColumnWidget *columnWidget, QModelIndex &index)
 {
-    emit taskDragged(columnWidget, index);
+    emit taskDraggedClick(columnWidget, index);
 }
 
-bool ProjectWindow::taskIsDroppingClick(ColumnWidget *columnWidget, QModelIndex &index)
+bool ProjectWindow::taskIsDroppingClicked(ColumnWidget *columnWidget, QModelIndex &index)
 {
-    return emit taskIsDropping(columnWidget, index);
+    return emit taskIsDroppingClick(columnWidget, index);
 }
 
+
+void ProjectWindow::on_delBoardToolButton_clicked()
+{
+    emit removeBoardClick();
+}

@@ -1,6 +1,5 @@
 #include "taskmanager.h"
-#include <QDebug>
-#include <QSqlError>
+
 TaskManager::TaskManager()
 {
     DatabaseManager::instance();
@@ -135,9 +134,9 @@ TaskManager::OpStatus TaskManager::addTask(QString columnName, QString& datetime
     return DatabaseManager::instance().insertBackTask(taskKey, description, deadline.isEmpty()? nullptr: &deadline);
 }
 
-TaskManager::OpStatus TaskManager::updateBoard(QString name, QString *newName, QString *newDescription, QString *newPathToBackground)
+TaskManager::OpStatus TaskManager::updateBoard(QString *newName, QString *newDescription, QString *newPathToBackground)
 {
-    return DatabaseManager::instance().updateBoard(name, newName, newDescription, newPathToBackground);
+    return DatabaseManager::instance().updateBoard(currentBoardName, newName, newDescription, newPathToBackground);
 }
 
 TaskManager::OpStatus TaskManager::updateColumnPos(QString name, ColumnUIntT newPos)
@@ -170,9 +169,9 @@ TaskManager::OpStatus TaskManager::moveTaskToOtherColumn(QString columnName, QSt
     return DatabaseManager::instance().moveTaskToOtherColumn(taskKey, newColumnName, newPos);
 }
 
-void TaskManager::removeBoard(QString name)
+TaskManager::OpStatus TaskManager::removeBoard()
 {
-    DatabaseManager::instance().deleteBoard(name);
+    return DatabaseManager::instance().deleteBoard(currentBoardName);
 }
 
 TaskManager::OpStatus TaskManager::removeColumn(QString name)

@@ -184,6 +184,17 @@ background-repeat: no repeat;</string>
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QToolButton" name="toolButton">
+          <property name="styleSheet">
+           <string notr="true">background-image: url(:/resource/img/boardDescription.png);
+background-image: no repeat;</string>
+          </property>
+          <property name="text">
+           <string>...</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
      </layout>
