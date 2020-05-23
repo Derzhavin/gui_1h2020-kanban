@@ -1,4 +1,5 @@
 #include "controller.h"
+#include <QDebug>
 
 Controller::Controller()
 {
@@ -112,12 +113,13 @@ void Controller::createBoard() // Сигнал исходит только от 
     createProjectDialog.show();
 }
 
-void Controller::reviewBoards() // Сигнал может исходить от projectWindow и createProjectDialog
+void Controller::reviewBoards() // Сигнал может исходить от projectWindow, createProjectDialog и boardSelectDialog
 {
-    if (qobject_cast<CreateProjectDialog*>(sender())) {
-        createProjectDialog.close(); // Происходит, если нужно вернуться от createProjectDailog к projectReviewDialog
-    }
+    QWidget *widget= qobject_cast<QWidget*>(sender());
 
+    if (!qobject_cast<ProjectWindow*>(widget)) {
+        widget->close(); // Происходит, если нужно вернуться от createProjectDailog или boardSelectDialog к projectReviewDialog
+    }
     projectReviewDialog.show();
 }
 
@@ -164,16 +166,24 @@ void Controller::openProjectWindow() // Сигнал может исходить
         }
     }
     else {
-        taskManager.currentBoardName = boardSelectDialog.getSelectedBoardName();
-        QSharedPointer<BoardLoad> sharedPtrBoardLoad = taskManager.loadBoard();
+        QString selectedBoardName = boardSelectDialog.getSelectedBoardName();
 
-        centerWidget(&projectWindow);
-        projectWindow.setBoardWithData(sharedPtrBoardLoad.data());
+        if (!taskManager.getBoardInfo(selectedBoardName).data()) {
+            QString msg =  "The board with this name doesn't exist.";
+            QMessageBox::information(&boardSelectDialog,  boardSelectDialog.windowTitle(), msg);
+        }
+        else {
+            taskManager.currentBoardName = selectedBoardName;
+            QSharedPointer<BoardLoad> sharedPtrBoardLoad = taskManager.loadBoard();
 
-        sharedPtrBoardLoad.clear();
+            centerWidget(&projectWindow);
+            projectWindow.setBoardWithData(sharedPtrBoardLoad.data());
 
-        boardSelectDialog.close();
-        projectWindow.show();
+            sharedPtrBoardLoad.clear();
+
+            boardSelectDialog.close();
+            projectWindow.show();
+        }
     }
 }
 
