@@ -1,4 +1,5 @@
 #include "taskmanager.h"
+#include <QDebug>
 
 TaskManager::TaskManager()
 {
@@ -114,6 +115,7 @@ SharedPtrTaskInfoList TaskManager::getTaskInfosByBoardAndColumn(QString boardNam
 
     QList<TaskInfo> *taskInfos = new QList<TaskInfo>;
     DatabaseManager::instance().foreachRecordInModel(model, [&](QSqlRecord& record){
+        qDebug() << 1;
         TaskInfo taskInfo;
         taskInfo.datetimeCreated = record.value("datetime_created").toString();
         taskInfo.deadline = record.value("deadline").toString();

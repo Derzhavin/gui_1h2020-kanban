@@ -34,8 +34,10 @@ void BoardWidget::setData(BoardLoad *boardLoad)
 
 void BoardWidget::clearData()
 {
-    for(ColumnUIntT i = 0; i < columnWidgets.size(); i++) {
-        removeColumnWidgetAtPos(i);
+    ColumnUIntT size = columnWidgets.size();
+
+    for(ColumnUIntT i = 0; i < size; i++) {
+        removeColumnWidgetAtPos(0);
     }
 }
 
