@@ -104,7 +104,22 @@ DatabaseManager::OpStatus DatabaseManager::updateBoard(QString &boardName, QStri
 
     query.addBindValue(boardName);
 
-    return query.exec() ? OpStatus::Success : OpStatus::Failure;
+    if (query.exec()) {
+        if (newBoardName)  {
+            query.prepare("UPDATE column SET board_name = ? WHERE board_name = ?");
+            query.addBindValue(*newBoardName);
+            query.addBindValue(boardName);
+            if (query.exec()) {
+                query.prepare("UPDATE task SET board_name = ? WHERE board_name = ?");
+                query.addBindValue(*newBoardName);
+                query.addBindValue(boardName);
+
+                return query.exec() ? OpStatus::Success: OpStatus::Failure;
+            }
+        }
+
+    }
+    return OpStatus::Failure;
 }
 
 DatabaseManager::OpStatus DatabaseManager::deleteBoard(QString &boardName)
@@ -504,7 +519,7 @@ TaskUIntT DatabaseManager::findMaxTaskPosInColumn(ColumnKey& columnKey)
 void DatabaseManager::selectTasksByColumn(QSqlTableModel &model, ColumnKey &columnKey)
 {
     selectFromTable(model, "task", [&]() {
-        model.setFilter("board_name = \"" + columnKey.first + "\" name = \"" + columnKey.second + "\"");
+        model.setFilter("board_name = \"" + columnKey.first + "\" AND column_name = \"" + columnKey.second + "\"");
     });
 }
 
